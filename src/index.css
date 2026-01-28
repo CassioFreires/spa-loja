@@ -15,13 +15,21 @@
   --border-color: #E5E7EB;
   --hover-color: #000000;
   --accent-color: #F39C12;
+  background-color: transparent;
 }
 
-body {
-  background-color: var(--light-bg);
-  color: var(--text-primary);
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+html {
+  background-color: #000000; /* Recomendo fundo preto para o dourado brilhar */
 }
+
+/* O Body e o Root precisam ser transparentes para o Canvas aparecer */
+body, #root {
+  background-color: transparent !important;
+  min-height: 100vh;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
 button.primary {
   background-color: var(--primary-color);
   color: var(--light-bg);

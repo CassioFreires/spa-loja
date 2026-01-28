@@ -2,40 +2,37 @@ import Banner from "../../../components/Banner/Banner";
 import BestSellers from "../../../components/BestSellers/BestSellers";
 import CategoryGrid from "../../../components/Cards/CategoryGrid/CategoryGrid";
 import CustomerWall from "../../../components/CustomerWall/CustomerWall";
+import ImportedAccessories from "../../../components/ImportedAccessories/ImportedAccessories";
 import Promotions from "../../../components/Promotions/Promotions";
 import Reviews from "../../../components/Reviews/Reviews";
 import ShoeSection from "../../../components/ShoeSection/ShoeSection";
+import AnimatedBackground from "../../../components/style/AnimatedBackground";
+
 function Home() {
     return (
-        <main className="min-h-screen bg-zinc-50">
-            {/* O Banner agora é o destaque principal (Hero) */}
+        /* Mudamos para bg-transparent para o canvas fixo aparecer */
+        <main className="relative min-h-screen bg-transparent">
+            <AnimatedBackground />
+
             <Banner />
-            {/* Próximas seções: Categorias em Destaque ou Vitrine de Produtos */}
-            <section className=" mx-auto py-12 px-4 md:px-8">
-                <div className="overflow-hidden rounded-3xl md:rounded-[40px] shadow-2xl">
+
+            {/* Exemplo de seção com "transparência profissional" */}
+            <section className="relative z-10 max-w-[1550px] mx-auto py-16 px-6">
+                <div className="bg-white/5 backdrop-blur-sm rounded-[3rem] p-2">
                     <Promotions />
                 </div>
             </section>
-            {/* Próximas seções: Categorias em Destaque ou Vitrine de Produtos */}
-            <section className="max-w-[1440px] mx-auto py-16 px-6">
+
+            {/* Repita o padrão de sections para as demais */}
+            <section className="relative z-10 max-w-[1440px] mx-auto py-16 px-6">
                 <CategoryGrid />
             </section>
 
-            <section className="max-w-[1440px] mx-auto py-16 px-6">
-                <CustomerWall />
-            </section>
-
-            <section className="max-w-[1440px] mx-auto py-16 px-6">
-                <BestSellers />
-            </section>
-
-            <section className="max-w-[1440px] mx-auto py-16 px-6">
-                <ShoeSection />
-            </section>
-
-            <section className="max-w-[1440px] mx-auto py-16 px-6">
-                <Reviews />
-            </section>
+            <BestSellers />
+            <ImportedAccessories />
+            <ShoeSection />
+            <CustomerWall />
+            <Reviews />
         </main>
     );
 }
