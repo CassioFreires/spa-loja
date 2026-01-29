@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { login as loginService } from '../services/login';
-import type { LoginCredentials } from '../services/login';
+import { login as loginService } from '../services/Auth/login';
+import type { LoginCredentials } from '../services/Auth/login';
 import { logError, logSuccess } from '../utils/logger';
 
 export const useLogin = () => {
@@ -19,7 +19,7 @@ export const useLogin = () => {
       const response = await loginService(credentials);
       
       // Salva no contexto e no localStorage via função do context
-      login(response.token, response.user);
+      login(response.access_token, response.user);
       
       logSuccess('Login bem sucedido', { userId: response.user.id });
       navigate('/', { replace: true }); // Redireciona para a Home ou Dashboard

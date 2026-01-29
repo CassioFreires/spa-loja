@@ -2,7 +2,7 @@ import { ShoppingBag, ChevronRight } from 'lucide-react';
 
 export default function Banner() {
   return (
-    <section className="relative w-full h-[85vh] md:h-[650px] lg:h-[750px] overflow-hidden flex items-center bg-transparent">
+    <section className="relative w-full h-[85vh] md:h-[650px] lg:h-[750px] overflow-hidden flex items-center bg-transparent teste">
       
       {/* Container da Imagem de Fundo com Transparência para o Canvas */}
       <div className="absolute inset-0 z-0">

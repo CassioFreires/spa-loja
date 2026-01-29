@@ -8,7 +8,7 @@ export interface LoginCredentials {
 }
 
 export interface AuthResponse {
-  token: string;
+  access_token: string;
   user: {
     id: string;
     email: string;
@@ -36,11 +36,12 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
       password: credentials.password,
     });
 
+    console.log('Login bem-sucedido:', response.data);
     // Armazenar token no localStorage
-    if (response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
+    if (response.data.access_token) {
+      localStorage.setItem('authToken', response.data.access_token);
       // Adicionar token aos headers padrão para requisições futuras
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
     }
 
     return response.data;
