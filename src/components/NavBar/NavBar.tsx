@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import {
   ChevronDown,
   X,
@@ -7,153 +7,158 @@ import {
   ShieldCheck,
   MessageSquare,
   LayoutGrid,
+  Loader2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query'; // Hook de cache
 
 import { useAuth } from '../../context/AuthContext';
-import { getCategories } from '../../services/Categories/categories';
 import { getSubcategories } from '../../services/Subcategories/subcategories';
 
 /* =========================
    Tipagens
 ========================= */
+interface Subcategory {
+  id: string | number;
+  name: string;
+  description?: string;
+  category_id?: string | number;
+}
+
+interface CategoryWithSub {
+  id: string | number;
+  name: string;
+  description?: string;
+  subcategories?: Subcategory[];
+  path?: string;
+}
+
 interface NavBarProps {
   isOpen: boolean;
   onClose: () => void;
   onToggleAdminMenu?: () => void;
 }
 
-interface Category {
-  name: string;
-  path: string;
-}
-
-/* =========================
-   Mock (fallback)
-========================= */
-const MOCK_CATEGORIES: Category[] = [
-  { name: 'Camisas Dry Fit', path: '/categoria/dry-fit' },
-  { name: 'Camisas de Times', path: '/categoria/times' },
-  { name: 'Camisas Premium', path: '/categoria/premium' },
-  { name: 'Shorts & Bermudas', path: '/categoria/shorts' },
-  { name: 'Tênis Elite', path: '/categoria/tenis' },
-  { name: 'Acessórios Gold', path: '/categoria/acessorios' },
-];
-
-/* =========================
-   Links de Suporte
-========================= */
 const SUPORTE_LINKS = [
   { name: 'Rastreio', path: '/rastreio', icon: <Truck className="w-3.5 h-3.5" /> },
   { name: 'Guia de Medidas', path: '/guia-medidas', icon: <Ruler className="w-3.5 h-3.5" /> },
   { name: 'Segurança', path: '/seguranca', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
   { name: 'Trocas', path: '/trocas', icon: <MessageSquare className="w-3.5 h-3.5" /> },
-  { name: 'Feedback', path: '/feedback', icon: <StarIcon /> },
 ];
 
 /* =========================
-   Componente
+   Sub-Componentes (Desktop)
 ========================= */
-export default function NavBar({
-  isOpen,
-  onClose,
-  onToggleAdminMenu,
-}: NavBarProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategorias, setSubCategorias] = useState<any[]>([]);
+
+function DropdownCategories({ 
+  categories, 
+  isLoading 
+}: { 
+  categories: CategoryWithSub[], 
+  isLoading: boolean 
+}) {
+  return (
+    <li className="relative group">
+      <button className="flex items-center gap-1.5 text-[12px] font-black uppercase tracking-widest hover:text-yellow-600 transition-colors py-2">
+        Categorias
+        <ChevronDown className="w-3 h-3 transition-transform group-hover:rotate-180" />
+      </button>
+
+      <ul className="absolute left-0 top-full w-64 bg-white shadow-2xl border border-zinc-100 rounded-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
+        
+        {isLoading && (
+          <div className="flex items-center justify-center p-4">
+            <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
+          </div>
+        )}
+
+        {!isLoading && categories.map((cat) => {
+          const hasSubs = cat.subcategories && cat.subcategories.length > 0;
+          
+          return (
+            <li key={cat.id} className="relative group/sub">
+              <Link
+                to={cat.path || `/categoria/${cat.id}`}
+                className="flex justify-between items-center px-5 py-3 text-[11px] font-bold uppercase text-zinc-600 hover:bg-yellow-50 hover:text-black transition-colors"
+              >
+                {cat.name}
+                {hasSubs && <ChevronDown className="w-3 h-3 -rotate-90 text-zinc-400" />}
+              </Link>
+
+              {hasSubs && (
+                <ul className="
+                  absolute left-[100%] top-[-8px] ml-[2px] 
+                  w-60 bg-white border border-zinc-100 shadow-2xl rounded-xl py-2 
+                  opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible 
+                  transition-all duration-200 z-[110]
+                  max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-200
+                ">
+                  {cat.subcategories?.map((sub) => (
+                    <li key={sub.id}>
+                      <Link
+                        to={`/categoria/sub/${sub.id}`}
+                        className="block px-5 py-3 text-[11px] font-bold uppercase text-zinc-600 hover:bg-yellow-50 hover:text-black transition-colors"
+                      >
+                        {sub.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </li>
+  );
+}
+
+/* =========================
+   Componente Principal NavBar
+========================= */
+export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarProps) {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-
+  
   const { user, isAuthenticated } = useAuth();
-  const hasAdminAccess =
-    user?.role.name === 'ADMIN' || user?.role.name === 'SUPORTE';
+  const hasAdminAccess = user?.role.name === 'ADMIN' || user?.role.name === 'SUPORTE';
 
-  /* =========================
-     Buscar categorias
-  ========================= */
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await getCategories();
+  // --- IMPLEMENTAÇÃO DO CACHE ---
+  const { data: categories = [], isLoading } = useQuery<CategoryWithSub[]>({
+    queryKey: ['subcategories-menu'],
+    queryFn: getSubcategories,
+    staleTime: Infinity, // Os dados nunca ficam "velhos" na sessão atual
+  });
 
-        if (Array.isArray(data) && data.length > 0) {
-          const formatted: Category[] = data.map((cat) => ({
-            name: cat.name,
-            path: `/categoria/${cat.name
-              .toLowerCase()
-              .replace(/\s+/g, '-')}`,
-          }));
-
-          setCategories(formatted);
-        } else {
-          setCategories(MOCK_CATEGORIES);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar categorias:', error);
-        setCategories(MOCK_CATEGORIES);
-      }
-    };
-
-    fetchCategories();
-
-    const fetchSubcategories = async () => {
-      try {
-        const data = await getSubcategories(); // Exemplo com categoryId = 1
-        console.log('Subcategorias:', data);
-        if (!Array.isArray(data)) {
-          throw new Error('Dados de subcategorias inválidos');
-        }
-        setSubCategorias(data);
-        return data;
-      } catch (error) {
-        console.error('Erro ao buscar subcategorias:', error);
-      }
-    }
-    fetchSubcategories()
-
-  }, []);
-
-  /* =========================
-     Render
-  ========================= */
   return (
     <>
-      {/* ===== DESKTOP ===== */}
+      {/* DESKTOP */}
       <nav className="w-full bg-white border-b border-zinc-100 hidden md:block">
         <div className="max-w-[1440px] mx-auto px-8">
           <ul className="flex items-center justify-center gap-8 py-3.5">
-            <NavLink to="/" label="Início" />
+            <li>
+              <Link to="/" className="text-[12px] font-black uppercase tracking-widest hover:text-yellow-600 transition-colors">
+                Início
+              </Link>
+            </li>
 
-            {/* Categorias */}
-            <Dropdown
-              label="Categorias"
-              items={categories.map((cat) => ({
-                label: cat.name,
-                to: cat.path,
-              }))}
+            <DropdownCategories categories={categories} isLoading={isLoading} />
+
+            <li>
+              <Link to="/camisas-de-time" className="text-[12px] font-black uppercase tracking-widest hover:text-yellow-600 transition-colors">
+                Camisas de Time
+              </Link>
+            </li>
+
+            <DropdownStatic 
+              label="Suporte" 
+              items={SUPORTE_LINKS.map(l => ({ label: l.name, to: l.path, icon: l.icon }))} 
             />
 
-            <NavLink to="/camisas-de-time" label="Camisas de Time" />
-
-            {/* Suporte */}
-            <Dropdown
-              label="Suporte"
-              items={SUPORTE_LINKS.map((link) => ({
-                label: link.name,
-                to: link.path,
-                icon: link.icon,
-              }))}
-            />
-
-            {/* Admin */}
             {isAuthenticated && hasAdminAccess && (
               <li>
-                <button
-                  onClick={onToggleAdminMenu}
-                  className="flex items-center gap-2 text-[12px] font-black text-yellow-600 uppercase tracking-widest"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                  Painel Admin
+                <button onClick={onToggleAdminMenu} className="flex items-center gap-2 text-[12px] font-black text-yellow-600 uppercase tracking-widest hover:opacity-80 transition-all">
+                  <LayoutGrid className="w-4 h-4" /> Painel Admin
                 </button>
               </li>
             )}
@@ -161,81 +166,26 @@ export default function NavBar({
         </div>
       </nav>
 
-      {/* ===== MOBILE ===== */}
-      <div
-        className={`fixed inset-0 z-[1000] md:hidden ${isOpen ? 'visible' : 'invisible'
-          }`}
-      >
-        <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-        <aside
-          className={`absolute left-0 top-0 h-full w-[80%] max-w-[300px] bg-white transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}
-        >
+      {/* MOBILE */}
+      <div className={`fixed inset-0 z-[1000] md:hidden ${isOpen ? 'visible' : 'invisible'} transition-all`}>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+        <aside className={`absolute left-0 top-0 h-full w-[85%] max-w-[320px] bg-white transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <header className="flex items-center justify-between p-6 bg-black text-white">
-            <span className="font-black text-yellow-500 italic text-xl">
-              GOLD STORE
-            </span>
+            <span className="font-black text-yellow-500 italic text-xl">GOLD STORE</span>
             <X className="w-6 h-6 cursor-pointer" onClick={onClose} />
           </header>
-
-          <ul>
-            {isAuthenticated && hasAdminAccess && (
-              <li className="border-b">
-                <button
-                  onClick={() => {
-                    onClose();
-                    onToggleAdminMenu?.();
-                  }}
-                  className="flex items-center gap-3 w-full p-6 font-black uppercase text-yellow-700"
-                >
-                  <LayoutGrid className="w-5 h-5" />
-                  Abrir Painel Admin
-                </button>
-              </li>
-            )}
-
-            {/* Categorias */}
-            <MobileAccordion
-              title="Categorias"
-              open={isCategoriesOpen}
-              toggle={() => setIsCategoriesOpen(!isCategoriesOpen)}
-            >
+          <div className="overflow-y-auto h-[calc(100%-80px)]">
+            <MobileAccordion title="Categorias" open={isCategoriesOpen} toggle={() => setIsCategoriesOpen(!isCategoriesOpen)}>
               {categories.map((cat) => (
-                <MobileLink
-                  key={cat.name}
-                  to={cat.path}
-                  onClick={onClose}
-                >
-                  {cat.name}
-                </MobileLink>
+                <div key={cat.id}>
+                  <Link to={`/categoria/${cat.id}`} onClick={onClose} className="block p-4 pl-8 text-[11px] font-bold uppercase bg-zinc-50">{cat.name}</Link>
+                  {cat.subcategories?.map((sub) => (
+                    <Link key={sub.id} to={`/categoria/sub/${sub.id}`} onClick={onClose} className="block p-3 pl-12 text-[10px] text-zinc-500">└ {sub.name}</Link>
+                  ))}
+                </div>
               ))}
             </MobileAccordion>
-
-            {/* Suporte */}
-            <MobileAccordion
-              title="Suporte"
-              open={isHelpOpen}
-              toggle={() => setIsHelpOpen(!isHelpOpen)}
-            >
-              {SUPORTE_LINKS.map((link) => (
-                <MobileLink
-                  key={link.name}
-                  to={link.path}
-                  onClick={onClose}
-                >
-                  {link.icon} {link.name}
-                </MobileLink>
-              ))}
-            </MobileAccordion>
-
-            <MobileLink to="/" onClick={onClose}>
-              Início
-            </MobileLink>
-            <MobileLink to="/camisas-de-time" onClick={onClose}>
-              Camisas de Time
-            </MobileLink>
-          </ul>
+          </div>
         </aside>
       </div>
     </>
@@ -243,123 +193,28 @@ export default function NavBar({
 }
 
 /* =========================
-   Componentes Auxiliares
+   Ajudantes
 ========================= */
-function NavLink({ to, label }: { to: string; label: string }) {
-  return (
-    <li>
-      <Link
-        to={to}
-        className="text-[12px] font-black uppercase tracking-widest hover:text-yellow-600"
-      >
-        {label}
-      </Link>
-    </li>
-  );
-}
-
-function Dropdown({
-  label,
-  items,
-}: {
-  label: string;
-  items: { label: string; to: string; icon?: ReactNode }[];
-}) {
+function DropdownStatic({ label, items }: { label: string; items: any[] }) {
   return (
     <li className="relative group">
-      {/* Botão */}
-      <button className="flex items-center gap-1.5 text-[12px] font-black uppercase tracking-widest hover:text-yellow-600 transition-colors">
-        {label}
-        <ChevronDown className="w-3 h-3 transition-transform group-hover:rotate-180" />
+      <button className="flex items-center gap-1.5 text-[12px] font-black uppercase py-2 tracking-widest hover:text-yellow-600">
+        {label} <ChevronDown className="w-3 h-3" />
       </button>
-
-      {/* Hover bridge (área invisível) */}
-      <div className="absolute left-0 top-full h-3 w-full" />
-
-      {/* Menu */}
-      <ul
-        className="
-          absolute left-0 top-full
-          w-56
-          bg-white
-          shadow-2xl
-          border border-zinc-100
-          rounded-xl
-          overflow-hidden
-          z-[100]
-          opacity-0 invisible
-          group-hover:opacity-100 group-hover:visible
-          transition-all duration-200
-        "
-      >
+      <ul className="absolute left-0 top-full w-56 bg-white shadow-2xl border border-zinc-100 rounded-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100]">
         {items.map((item) => (
-          <Link key={item.label} to={item.to}>
-            <li className="flex items-center gap-3 px-5 py-3 text-[11px] font-bold text-zinc-600 hover:bg-yellow-50 hover:text-black uppercase transition-colors">
-              {item.icon && <span className="text-yellow-600">{item.icon}</span>}
-              {item.label}
-            </li>
-          </Link>
+          <li key={item.label}><Link to={item.to} className="flex items-center gap-3 px-5 py-3 text-[11px] font-bold uppercase text-zinc-600 hover:bg-yellow-50 hover:text-black">{item.icon} {item.label}</Link></li>
         ))}
       </ul>
     </li>
   );
 }
 
-function MobileAccordion({
-  title,
-  open,
-  toggle,
-  children,
-}: {
-  title: string;
-  open: boolean;
-  toggle: () => void;
-  children: React.ReactNode;
-}) {
+function MobileAccordion({ title, open, toggle, children }: { title: string; open: boolean; toggle: () => void; children: React.ReactNode }) {
   return (
-    <li className="border-b">
-      <button
-        onClick={toggle}
-        className="flex justify-between w-full p-6 font-black uppercase"
-      >
-        {title}
-        <ChevronDown
-          className={`w-4 h-4 transition ${open ? 'rotate-180' : ''}`}
-        />
-      </button>
-      <div className={`bg-zinc-50 ${open ? 'block' : 'hidden'}`}>
-        {children}
-      </div>
-    </li>
-  );
-}
-
-function MobileLink({
-  to,
-  onClick,
-  children,
-}: {
-  to: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className="block p-4 pl-10 text-[11px] font-bold uppercase text-zinc-500"
-    >
-      {children}
-    </Link>
-  );
-}
-
-function StarIcon() {
-  return (
-    <div className="flex gap-0.5">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="w-1 h-1 bg-yellow-500 rounded-full" />
-      ))}
+    <div className="border-b border-zinc-100">
+      <button onClick={toggle} className="flex justify-between w-full p-6 font-black uppercase text-[12px] tracking-widest">{title} <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} /></button>
+      <div className={`${open ? 'block' : 'hidden'} bg-white`}>{children}</div>
     </div>
   );
 }

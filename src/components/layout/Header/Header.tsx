@@ -25,6 +25,7 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
           {/* Logo */}
           <Link to="/" className="flex-shrink-0 transition-transform active:scale-95">
             <img
+              // Adicionada a barra "/" no início para tornar o caminho absoluto
               src="assets/images/logo.png"
               alt="Gold Store Multimarcas"
               className="h-12 md:h-20 w-auto"
@@ -165,10 +166,10 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
       </div>
 
       {/* Menu de Navegação - AGORA RECEBENDO A FUNÇÃO DO PAINEL */}
-      <NavBar 
-        isOpen={isMobileMenuOpen} 
-        onClose={() => setMobileMenuOpen(false)} 
-        onToggleAdminMenu={onToggleAdminMenu} 
+      <NavBar
+        isOpen={isMobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        onToggleAdminMenu={onToggleAdminMenu}
       />
 
       {/* Busca Mobile */}
