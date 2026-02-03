@@ -5,6 +5,7 @@ import { User, ShoppingCart, Menu as MenuIcon } from 'lucide-react';
 import SearchBar from '../../searchs/SearchBar';
 import NavBar from '../../NavBar/NavBar';
 import { useAuth } from '../../../context/AuthContext';
+import { useCart } from '../../../context/CartContext';
 
 interface HeaderProps {
   onToggleAdminMenu?: () => void;
@@ -13,6 +14,7 @@ interface HeaderProps {
 export default function Header({ onToggleAdminMenu }: HeaderProps) {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { totalItems } = useCart();
 
   const { user, isAuthenticated, logout } = useAuth();
 
@@ -145,13 +147,17 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
 
             {/* Carrinho */}
             <Link
-              to="/cart"
+              to="/carrinho"
               className="relative group p-1 transition-transform active:scale-90"
             >
               <ShoppingCart className="w-7 h-7 md:w-8 md:h-8 text-white stroke-[1.2] group-hover:text-yellow-500 transition-colors" />
-              <span className="absolute -top-1 -right-2 flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-yellow-500 text-[10px] md:text-[12px] font-black text-black ring-2 ring-black">
-                0
-              </span>
+
+              {/* Só mostramos a bolinha se houver mais de 0 itens */}
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-2 flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-yellow-500 text-[10px] md:text-[12px] font-black text-black ring-2 ring-black animate-in zoom-in duration-300">
+                  {totalItems}
+                </span>
+              )}
             </Link>
 
             {/* Menu Mobile */}

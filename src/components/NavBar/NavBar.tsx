@@ -8,6 +8,7 @@ import {
   MessageSquare,
   LayoutGrid,
   Loader2,
+  Package
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query'; // Hook de cache
@@ -40,8 +41,8 @@ interface NavBarProps {
 }
 
 const SUPORTE_LINKS = [
-  { name: 'Rastreio', path: '/rastreio', icon: <Truck className="w-3.5 h-3.5" /> },
-  { name: 'Guia de Medidas', path: '/guia-medidas', icon: <Ruler className="w-3.5 h-3.5" /> },
+  { name: 'Rastreio', path: '/rastreamento-do-pedido', icon: <Truck className="w-3.5 h-3.5" /> },
+  { name: 'Guia de Medidas', path: '/guia-de-medidas', icon: <Ruler className="w-3.5 h-3.5" /> },
   { name: 'Segurança', path: '/seguranca', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
   { name: 'Trocas', path: '/trocas', icon: <MessageSquare className="w-3.5 h-3.5" /> },
 ];
@@ -50,12 +51,12 @@ const SUPORTE_LINKS = [
    Sub-Componentes (Desktop)
 ========================= */
 
-function DropdownCategories({ 
-  categories, 
-  isLoading 
-}: { 
-  categories: CategoryWithSub[], 
-  isLoading: boolean 
+function DropdownCategories({
+  categories,
+  isLoading
+}: {
+  categories: CategoryWithSub[],
+  isLoading: boolean
 }) {
   return (
     <li className="relative group">
@@ -65,7 +66,7 @@ function DropdownCategories({
       </button>
 
       <ul className="absolute left-0 top-full w-64 bg-white shadow-2xl border border-zinc-100 rounded-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
-        
+
         {isLoading && (
           <div className="flex items-center justify-center p-4">
             <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
@@ -74,7 +75,7 @@ function DropdownCategories({
 
         {!isLoading && categories.map((cat) => {
           const hasSubs = cat.subcategories && cat.subcategories.length > 0;
-          
+
           return (
             <li key={cat.id} className="relative group/sub">
               <Link
@@ -118,8 +119,7 @@ function DropdownCategories({
 ========================= */
 export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarProps) {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
-  
+
   const { user, isAuthenticated } = useAuth();
   const hasAdminAccess = user?.role.name === 'ADMIN' || user?.role.name === 'SUPORTE';
 
@@ -150,11 +150,21 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
               </Link>
             </li>
 
-            <DropdownStatic 
-              label="Suporte" 
-              items={SUPORTE_LINKS.map(l => ({ label: l.name, to: l.path, icon: l.icon }))} 
+            <DropdownStatic
+              label="Suporte"
+              items={SUPORTE_LINKS.map(l => ({ label: l.name, to: l.path, icon: l.icon }))}
             />
 
+            {/* LINK DIFERENCIADO: MEUS PEDIDOS (Apenas Logados) */}
+            {isAuthenticated && (
+              <li>
+                <Link to="/meus-pedidos" className="flex items-center gap-2 text-[12px] font-black text-zinc-900 uppercase tracking-widest hover:text-yellow-600 transition-all italic border-l pl-8 border-zinc-200 ml-2">
+                  <Package className="w-4 h-4 text-yellow-600" /> Meus Pedidos
+                </Link>
+              </li>
+            )}
+
+            {/* PAINEL ADMIN */}
             {isAuthenticated && hasAdminAccess && (
               <li>
                 <button onClick={onToggleAdminMenu} className="flex items-center gap-2 text-[12px] font-black text-yellow-600 uppercase tracking-widest hover:opacity-80 transition-all">
@@ -174,7 +184,19 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
             <span className="font-black text-yellow-500 italic text-xl">GOLD STORE</span>
             <X className="w-6 h-6 cursor-pointer" onClick={onClose} />
           </header>
+
           <div className="overflow-y-auto h-[calc(100%-80px)]">
+            {/* LINK DIFERENCIADO MOBILE: MEUS PEDIDOS */}
+            {isAuthenticated && (
+              <Link
+                to="/meus-pedidos"
+                onClick={onClose}
+                className="flex items-center gap-4 p-6 font-black uppercase text-[12px] tracking-widest text-white bg-zinc-900 border-b border-white/10"
+              >
+                <Package className="w-5 h-5 text-yellow-500" /> Meus Pedidos
+              </Link>
+            )}
+
             <MobileAccordion title="Categorias" open={isCategoriesOpen} toggle={() => setIsCategoriesOpen(!isCategoriesOpen)}>
               {categories.map((cat) => (
                 <div key={cat.id}>
@@ -185,6 +207,25 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
                 </div>
               ))}
             </MobileAccordion>
+
+            {/* Links de Suporte no Mobile */}
+            <div className="py-4">
+              {SUPORTE_LINKS.map(link => (
+                <Link key={link.path} to={link.path} onClick={onClose} className="flex items-center gap-3 p-4 pl-6 text-[11px] font-bold uppercase text-zinc-600 hover:text-black">
+                  {link.icon} {link.name}
+                </Link>
+              ))}
+            </div>
+
+            {/* PAINEL ADMIN MOBILE */}
+            {isAuthenticated && hasAdminAccess && (
+              <button
+                onClick={() => { onClose(); onToggleAdminMenu?.(); }}
+                className="flex items-center gap-4 w-full p-6 font-black uppercase text-[12px] tracking-widest text-yellow-600 border-t border-zinc-100"
+              >
+                <LayoutGrid className="w-5 h-5" /> Painel Admin
+              </button>
+            )}
           </div>
         </aside>
       </div>

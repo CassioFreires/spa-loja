@@ -49,20 +49,28 @@ export default function ProductPageLayout({
   onFilterChange
 }: ProductPageLayoutProps) {
 
-  // Extração dinâmica de tamanhos baseada nos produtos carregados
+  // Extração dinâmica baseada nos tipos das migrations (Tamanho, Cor, Numeração)
   const availableSizes = Array.from(new Set(
     products.flatMap(p => p.variations?.filter(v => v?.type === 'Tamanho').map(v => v.value) || [])
   )).sort();
 
+  const availableColors = Array.from(new Set(
+    products.flatMap(p => p.variations?.filter(v => v?.type === 'Cor').map(v => v.value) || [])
+  )).sort();
+
+  const availableNumbers = Array.from(new Set(
+    products.flatMap(p => p.variations?.filter(v => v?.type === 'Numeração').map(v => v.value) || [])
+  )).sort();
+
   return (
-    <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 min-h-screen">
+    <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 min-h-screen leading-none italic">
       <div className="flex flex-col md:flex-row gap-10">
 
         {/* SIDEBAR DE FILTROS */}
         <aside className="hidden md:block w-64 flex-shrink-0 space-y-8">
           {/* FILTRO DE MARCA */}
           <section>
-            <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 italic text-zinc-800">Marca</h4>
+            <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Marca</h4>
             <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
               {brands.length > 0 ? (
                 brands.map((brand) => (
@@ -79,14 +87,35 @@ export default function ProductPageLayout({
                   </label>
                 ))
               ) : (
-                <span className="text-[10px] text-zinc-400 italic font-bold">Carregando marcas...</span>
+                <span className="text-[10px] text-zinc-400 font-bold uppercase">Carregando marcas...</span>
               )}
             </div>
           </section>
 
+          {/* FILTRO DE COR (NOVO) */}
+          {availableColors.length > 0 && (
+            <section>
+              <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Cor</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {availableColors.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => onFilterChange({ color: filters.color === color ? '' : color })}
+                    className={`py-2 text-[10px] font-black border transition-all ${filters.color === color
+                      ? 'bg-black text-white border-black'
+                      : 'border-zinc-200 text-zinc-500 hover:border-black'
+                      }`}
+                  >
+                    {color}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* FILTRO DE TAMANHO */}
           <section>
-            <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 italic text-zinc-800">Tamanho</h4>
+            <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Tamanho</h4>
             <div className="grid grid-cols-3 gap-2">
               {availableSizes.length > 0 ? availableSizes.map((size) => (
                 <button
@@ -99,13 +128,34 @@ export default function ProductPageLayout({
                 >
                   {size}
                 </button>
-              )) : <span className="text-[10px] text-zinc-400 font-bold italic col-span-3 text-center py-4 bg-zinc-50 rounded">Selecione uma categoria</span>}
+              )) : <span className="text-[10px] text-zinc-400 font-bold col-span-3 text-center py-4 bg-zinc-50 rounded">Sem variações</span>}
             </div>
           </section>
 
-          {/* FILTRO DE PREÇO */}
+          {/* FILTRO DE NUMERAÇÃO (NOVO) */}
+          {availableNumbers.length > 0 && (
+            <section>
+              <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Numeração</h4>
+              <div className="grid grid-cols-3 gap-2">
+                {availableNumbers.map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => onFilterChange({ size: filters.size === num ? '' : num })}
+                    className={`py-2 text-[10px] font-black border transition-all ${filters.size === num
+                      ? 'bg-black text-white border-black'
+                      : 'border-zinc-200 text-zinc-500 hover:border-black'
+                      }`}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* FILTRO DE PREÇO E BOTÃO LIMPAR (Mantidos conforme original) */}
           <section>
-            <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 italic text-zinc-800">Preço</h4>
+            <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Preço</h4>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -124,10 +174,9 @@ export default function ProductPageLayout({
             </div>
           </section>
 
-          {/* BOTÃO LIMPAR */}
           <button
             onClick={() => onFilterChange({ brand_id: '', size: '', min_price: '', max_price: '', color: '', sort: 'name_asc' })}
-            className="w-full py-3 bg-zinc-900 text-white text-[10px] font-black uppercase hover:bg-yellow-600 hover:text-black transition-all rounded italic tracking-widest"
+            className="w-full py-3 bg-zinc-900 text-white text-[10px] font-black uppercase hover:bg-yellow-600 hover:text-black transition-all rounded tracking-widest"
           >
             Limpar Filtros
           </button>
@@ -143,7 +192,7 @@ export default function ProductPageLayout({
                 <span className="text-zinc-600">{title}</span>
               </nav>
               <h1 className="text-4xl font-black uppercase tracking-tighter text-zinc-900 italic leading-none">
-                {products.map((p) => p.category_name).find(Boolean) || title}
+                {products.length > 0 ? products[0].category_name : title}
               </h1>
             </div>
 
@@ -158,57 +207,26 @@ export default function ProductPageLayout({
                 <option value="price_desc">Maior Preço</option>
                 <option value="newest">Novidades</option>
               </select>
-
-              {pagination && (
-                <div className="text-[11px] font-black uppercase text-zinc-500 bg-zinc-50 px-4 py-2.5 rounded-full border border-zinc-100 italic">
-                  {pagination.total} Itens
-                </div>
-              )}
             </div>
           </header>
 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-32 bg-zinc-50/50 rounded-3xl border border-dashed border-zinc-200">
               <Loader2 className="w-10 h-10 animate-spin text-yellow-600" />
-              <span className="mt-4 font-black uppercase text-[10px] tracking-widest text-zinc-400 italic">Atualizando vitrine...</span>
+              <span className="mt-4 font-black uppercase text-[10px] tracking-widest text-zinc-400">Atualizando vitrine...</span>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-
-              {pagination && pagination.lastPage > 1 && (
-                <div className="mt-12 flex justify-center gap-2 border-t pt-8">
-                  {Array.from({ length: pagination.lastPage }, (_, i) => i + 1).map(page => (
-                    <button
-                      key={page}
-                      onClick={() => onPageChange?.(page)}
-                      className={`w-10 h-10 text-[11px] font-black rounded-full transition-all border ${pagination.currentPage === page
-                        ? 'bg-black text-white border-black shadow-lg shadow-black/20 scale-110'
-                        : 'bg-white text-zinc-400 border-zinc-200 hover:border-black hover:text-black'
-                        }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
           )}
 
           {!isLoading && products.length === 0 && (
             <div className="text-center py-32 border-2 border-dashed border-zinc-100 rounded-3xl bg-zinc-50/30">
               <MessageSquare className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
-              <p className="font-black uppercase text-zinc-400 text-xs italic">Ops! Nenhum produto encontrado com esses filtros.</p>
-              <button
-                onClick={() => onFilterChange({ brand_id: '', size: '', min_price: '', max_price: '' })}
-                className="mt-4 text-[10px] font-black uppercase text-yellow-600 underline underline-offset-4"
-              >
-                Resetar Filtros
-              </button>
+              <p className="font-black uppercase text-zinc-400 text-xs italic">Nenhum produto encontrado.</p>
             </div>
           )}
         </div>
@@ -220,22 +238,19 @@ export default function ProductPageLayout({
 function ProductCard({ product }: { product: Product }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const sizes = product.variations
-    ? [...new Set(product.variations.filter(v => v?.type === 'Tamanho').map(v => v.value))]
+  // Exibe todas as variações únicas (Cor, Tamanho, Numeração) no hover do card
+  const allSpecs = product.variations
+    ? [...new Set(product.variations.map(v => v.value))]
     : [];
 
-  // Função para abrir o modal sem navegar para a página de produto (opcional)
   const handleOpenModal = (e: React.MouseEvent) => {
-    e.preventDefault(); // Impede a navegação do <Link>
+    e.preventDefault();
     setIsModalOpen(true);
   };
 
   return (
     <>
-      <div 
-        onClick={handleOpenModal} 
-        className="group flex flex-col bg-white overflow-hidden relative cursor-pointer"
-      >
+      <div onClick={handleOpenModal} className="group flex flex-col bg-white overflow-hidden relative cursor-pointer">
         <div className="relative aspect-[3/4] bg-zinc-100 overflow-hidden rounded-sm border border-zinc-100">
           <div className="absolute top-2 right-2 flex flex-col gap-1 z-10 items-end">
             {product.discount_percentage && (
@@ -257,17 +272,17 @@ function ProductCard({ product }: { product: Product }) {
           />
 
           <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-3 translate-y-full group-hover:translate-y-0 transition-all duration-300 hidden md:flex gap-1.5 justify-center flex-wrap border-t border-zinc-100">
-            {sizes.map(s => (
-              <span key={s} className="text-[9px] font-black border border-zinc-200 px-2 py-0.5 rounded bg-white text-zinc-800">{s}</span>
+            {allSpecs.map(s => (
+              <span key={s} className="text-[9px] font-black border border-zinc-200 px-2 py-0.5 rounded bg-white text-zinc-800 uppercase">{s}</span>
             ))}
           </div>
         </div>
 
-        <div className="py-4 space-y-1.5">
+        <div className="py-4 space-y-1.5 leading-none">
           <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-tighter italic block">
             {product.brand_name || 'Premium'} • {product.category_name}
           </span>
-          <h3 className="text-[11px] font-black uppercase text-zinc-800 line-clamp-2 leading-tight group-hover:text-yellow-600 transition-colors h-8">
+          <h3 className="text-[11px] font-black uppercase text-zinc-800 line-clamp-2 h-8 leading-tight">
             {product.name}
           </h3>
 
@@ -277,14 +292,13 @@ function ProductCard({ product }: { product: Product }) {
                 R${Number(product.old_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             )}
-            <span className="text-lg font-black text-zinc-900 italic leading-none">
+            <span className="text-lg font-black text-zinc-900 italic">
               R${Number(product.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
           </div>
         </div>
       </div>
 
-      {/* MODAL RENDERIZADO FORA DO LINK PARA EVITAR CONFLITOS */}
       {isModalOpen && (
         <ProductDetailModal
           product={product}

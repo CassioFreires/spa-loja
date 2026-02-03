@@ -1,4 +1,5 @@
 import { ShoppingCart, Star, Flame, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const bestSellers = [
   {
@@ -43,7 +44,7 @@ export default function BestSellers() {
   return (
     <section className="relative py-12 md:py-24 px-4 md:px-6 bg-transparent overflow-hidden">
       <div className="max-w-[1440px] mx-auto relative z-10">
-        
+
         {/* Cabeçalho de Impacto */}
         <div className="flex flex-col md:flex-row items-center md:items-end justify-between mb-10 md:mb-16 gap-6">
           <div className="text-center md:text-left">
@@ -64,11 +65,11 @@ export default function BestSellers() {
         {/* Grid / Carrossel Mobile */}
         <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 overflow-x-auto pb-10 md:pb-0 scrollbar-hide snap-x snap-mandatory">
           {bestSellers.map((product) => (
-            <div 
-              key={product.id} 
+            <div
+              key={product.id}
               className="min-w-[80vw] sm:min-w-[320px] md:min-w-full snap-center group relative bg-white/40 backdrop-blur-md rounded-[2.5rem] p-4 border border-white/60 hover:border-yellow-500/50 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col"
             >
-              
+
               {/* Container da Imagem */}
               <div className="relative aspect-[3/4] overflow-hidden rounded-[2rem] bg-zinc-100 mb-6">
                 {product.tag && (
@@ -76,19 +77,21 @@ export default function BestSellers() {
                     {product.tag}
                   </div>
                 )}
-                
-                <img 
-                  src={product.image} 
-                  alt={product.name} 
+
+                <img
+                  src={product.image}
+                  alt={product.name}
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                 />
 
                 {/* Botão de Compra Rápida - Mobile amigável */}
                 <div className="absolute inset-x-4 bottom-4 z-20 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                  <button className="w-full bg-yellow-500 text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-yellow-500/30 active:scale-95">
-                    <ShoppingCart className="w-4 h-4" />
-                    ADICIONAR AO CARRINHO
-                  </button>
+                  <Link to={'/carrinho'}>
+                    <button className="w-full bg-yellow-500 text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-yellow-500/30 active:scale-95">
+                      <ShoppingCart className="w-4 h-4" />
+                      ADICIONAR AO CARRINHO
+                    </button>
+                  </Link>
                 </div>
               </div>
 
@@ -105,7 +108,7 @@ export default function BestSellers() {
                 <h3 className="font-bold text-zinc-900 text-lg md:text-xl leading-tight group-hover:text-yellow-600 transition-colors italic uppercase mb-4">
                   {product.name}
                 </h3>
-                
+
                 <div className="mt-auto pt-4 border-t border-black/5 flex items-end justify-between">
                   <div className="flex flex-col">
                     <span className="text-[10px] text-zinc-400 line-through font-bold">R$ {product.oldPrice.toFixed(2)}</span>

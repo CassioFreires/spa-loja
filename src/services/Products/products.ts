@@ -51,4 +51,31 @@ export const getProducts = async (
     }
 };
 
+// Busca os tipos de variações (Tamanho, Cor, Numeração)
+export const getVariationTypes = async () => {
+    const response = await axiosInstance.get('/variation-types'); // Crie este endpoint no Nest
+    return response.data;
+};
+
+// Busca as opções de um tipo (P, M, G ou 40, 41...)
+export const getVariantOptions = async () => {
+    const response = await axiosInstance.get('/variants-options'); // Crie este endpoint no Nest
+    return response.data;
+};
+
+export const createProduct = async (data: FormData) => {
+    console.log(data)
+  const response = await axiosInstance.post('/products', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const createProductVariation = async (data: any) => {
+    const response = await axiosInstance.post('/product-variations', data);
+    return response.data;
+};
+
 export default axiosInstance;
