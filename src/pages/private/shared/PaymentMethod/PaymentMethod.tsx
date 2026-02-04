@@ -7,7 +7,7 @@ import CreditCardModal from '../../../../components/modals/CreditCardModalProps'
 import { useCart } from '../../../../context/CartContext';
 import { createOrder } from '../../../../services/Orders/orders'; // Certifique-se que o service exporta createOrder
 
-type PaymentMethod = 'credit_card' | 'pix' | 'boleto';
+type PaymentMethod = 'credit_card' | 'pix';
 
 export default function PaymentSelection() {
     const navigate = useNavigate();
@@ -59,17 +59,6 @@ export default function PaymentSelection() {
             // Determina o status com base no método selecionado
             let orderStatus = 'PENDENTE';
 
-            if (selectedMethod === 'credit_card') {
-                // No cartão, simulamos uma aprovação imediata (ou enviamos como processando)
-                orderStatus = 'PAGO';
-            } else if (selectedMethod === 'pix') {
-                // No PIX, fica aguardando o pagamento do QR Code
-                orderStatus = 'AGUARDANDO_PIX';
-            } else if (selectedMethod === 'boleto') {
-                // No boleto, aguarda compensação bancária
-                orderStatus = 'AGUARDANDO_BOLETO';
-            }
-
             // Prepara o payload para o NestJS
             const orderPayload = {
                 address_id: Number(addressId),
@@ -82,23 +71,12 @@ export default function PaymentSelection() {
             };
 
             // Chamada para o seu serviço de API
-            const response = await createOrder(orderPayload);
+            await createOrder(orderPayload);
 
-            if (response) {
-                // Feedback personalizado baseado no status
-                if (orderStatus === 'PAGO') {
-                    toast.success("Pagamento aprovado! Seu pedido já está em separação.");
-                } else if (orderStatus === 'AGUARDANDO_PIX') {
-                    toast.success("Pedido gerado! Pague o PIX para confirmar.");
-                } else {
-                    toast.success("Pedido realizado! Aguardando compensação do boleto.");
-                }
+            clearCart(); // Limpa o Context e LocalStorage
 
-                clearCart(); // Limpa o Context e LocalStorage
-
-                // Redireciona para Meus Pedidos
-                navigate('/meus-pedidos');
-            }
+            // Redireciona para Meus Pedidos
+            navigate('/meus-pedidos');
 
         } catch (error: any) {
             console.error("Erro ao criar pedido:", error);
@@ -167,23 +145,6 @@ export default function PaymentSelection() {
                             </div>
                             {selectedMethod === 'pix' && <CheckCircle2 size={24} className="text-yellow-500" fill="currentColor" stroke="white" />}
                         </div>
-                    </div>
-
-                    <div
-                        onClick={() => !isSubmitting && setSelectedMethod('boleto')}
-                        className={`group relative bg-white p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer flex items-center justify-between leading-none ${selectedMethod === 'boleto' ? 'border-yellow-500 shadow-xl ring-4 ring-yellow-500/5' : 'border-transparent hover:border-zinc-200 shadow-sm'
-                            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        <div className="flex items-center gap-6 text-left leading-none">
-                            <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-colors ${selectedMethod === 'boleto' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-400'}`}>
-                                <Landmark size={32} />
-                            </div>
-                            <div className="leading-none">
-                                <h3 className="font-black uppercase italic text-lg tracking-tight leading-none">Boleto Bancário</h3>
-                                <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider italic mt-1 leading-none">Vencimento em 1 dia útil</p>
-                            </div>
-                        </div>
-                        {selectedMethod === 'boleto' && <CheckCircle2 size={24} className="text-yellow-500" fill="currentColor" stroke="white" />}
                     </div>
                 </div>
 
