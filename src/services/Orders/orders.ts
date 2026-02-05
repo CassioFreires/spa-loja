@@ -13,7 +13,10 @@ interface CreateOrderPayload {
     address_id: number;
     items: OrderItemPayload[];
 }
-
+export interface ShippingResponse {
+    price: number;
+    eta: number; // Estimativa de dias
+}
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
     headers: { 'Content-Type': 'application/json' },
@@ -38,3 +41,31 @@ export const createOrder = async (orderData: CreateOrderPayload) => {
     });
     return response.data;
 };
+
+export const cancelOrder = async (orderId: number) => {
+    const token = localStorage.getItem('authToken');
+    const response = await axiosInstance.patch(`/orders/${orderId}/cancel`, {}, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    return response.data;
+};
+
+// export const calculateShippingAPI = async (zipCode: string): Promise<ShippingResponse> => {
+//     const token = localStorage.getItem('authToken');
+
+//     // Limpa o CEP para enviar apenas números
+//     const cleanZip = zipCode.replace(/\D/g, '');
+
+//     const response = await axiosInstance.post('/orders/calculate',
+//         { zipCode: cleanZip },
+//         {
+//             headers: {
+//                 Authorization: `Bearer ${token}`
+//             }
+//         }
+//     );
+
+//     return response.data;
+// };
