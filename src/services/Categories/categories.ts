@@ -69,6 +69,7 @@ export const getCategoryById = async (id: number): Promise<Category> => {
   }
 };
 
+
 // --- Helper de Erro ---
 
 const handleApiError = (error: any) => {

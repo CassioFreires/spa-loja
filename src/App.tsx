@@ -34,6 +34,7 @@ import AdminDashboard from "./pages/private/admin/Dashboard/Dashboard";
 import MyProducts from "./pages/private/admin/MyProducts/MyProducts";
 import AdminAddProduct from "./pages/private/admin/AddProduct/AddProduct";
 import AdminOrders from "./pages/private/admin/Orders/Orders";
+import AdminFeaturedProducts from "./pages/private/admin/FeaturedProducts/FeaturedProducts";
 
 function App() {
   return (
@@ -78,8 +79,11 @@ function App() {
                 ROTAS ADMINISTRATIVAS
                ========================================== */}
             <Route path="/admin/dashboard" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+
             <Route path="/admin/produtos" element={<PrivateRoute><MyProducts /></PrivateRoute>} />
             <Route path="/admin/produto/adicionar" element={<PrivateRoute><AdminAddProduct /></PrivateRoute>} />
+            <Route path="/admin/produto/desconto" element={<PrivateRoute><AdminFeaturedProducts /></PrivateRoute>} />
+
             <Route path="/admin/pedidos" element={<PrivateRoute><AdminOrders /></PrivateRoute>} />
 
             {/* ==========================================

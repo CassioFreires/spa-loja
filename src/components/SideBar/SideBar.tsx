@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   UserCircle,
   PlusCircle,
-  TrendingUp
+  TrendingUp // Ícone para Ofertas
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -23,11 +23,20 @@ export default function SideBar({ isOpen, onClose }: SideBarProps) {
   const permissions = user?.permissions || [];
   const can = (permission: string) => permissions.includes(permission);
 
-  // Lista de navegação inteligente com separação de Dashboard e Gestão
+  // Lista de navegação inteligente atualizada
   const navItems = [
     { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, show: true },
     { to: "/admin/produtos", label: "Meus Produtos", icon: Package, show: can("GERENCIAR_PRODUTOS") },
     { to: "/admin/produto/adicionar", label: "Cadastrar Novo", icon: PlusCircle, show: can("GERENCIAR_PRODUTOS") },
+    
+    // --- ITEM ADICIONADO: GESTÃO DE OFERTAS ---
+    { 
+      to: "/admin/produto/desconto", 
+      label: "Gestão de Ofertas", 
+      icon: TrendingUp, 
+      show: can("GERENCIAR_PRODUTOS") // Geralmente quem gerencia produtos gerencia as ofertas
+    },
+    
     { to: "/admin/pedidos", label: "Vendas & Pedidos", icon: ShoppingBag, show: can("VISUALIZAR_PEDIDOS") },
     { to: "/admin/usuarios", label: "Gestão de Usuários", icon: Users, show: can("GERENCIAR_USUARIOS") },
     { to: "/admin/permissoes", label: "Permissões", icon: ShieldCheck, show: isAdmin },
@@ -66,7 +75,7 @@ export default function SideBar({ isOpen, onClose }: SideBarProps) {
           <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
             <p className="text-[9px] text-zinc-500 font-black uppercase tracking-widest mb-1">Acesso Nível</p>
             <p className="text-xs font-bold text-yellow-500 uppercase italic">
-               {isAdmin ? "Administrador Master" : "Equipe de Suporte"}
+                {isAdmin ? "Administrador Master" : "Equipe de Suporte"}
             </p>
             <div className="mt-3 pt-3 border-t border-white/5">
                 <p className="text-sm text-zinc-300 truncate font-medium italic">{user?.name}</p>

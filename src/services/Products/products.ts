@@ -65,17 +65,49 @@ export const getVariantOptions = async () => {
 
 export const createProduct = async (data: FormData) => {
     console.log(data)
-  const response = await axiosInstance.post('/products', data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
+    const response = await axiosInstance.post('/products', data, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
 };
 
 export const createProductVariation = async (data: any) => {
     const response = await axiosInstance.post('/product-variations', data);
     return response.data;
+};
+
+export const getImportedAccessories = async (): Promise<any[]> => {
+    try {
+        const response = await axiosInstance.get('/products/category/accessories');
+        return response.data; // Retorna o array de produtos com variações
+    } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+    }
+};
+
+export const getBestSellers = async (limit: number = 4): Promise<any[]> => {
+    try {
+        const response = await axiosInstance.get('/products/best-sellers', {
+            params: { limit }
+        });
+        return response.data; // Retorna array de produtos com variações
+    } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+    }
+};
+
+export const getFootwear = async (): Promise<any[]> => {
+    try {
+        const response = await axiosInstance.get('/products/category/footwear');
+        return response.data;
+    } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+    }
 };
 
 export default axiosInstance;

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ShoppingCart, Check, Truck, ShieldCheck, Star } from 'lucide-react';
-import type { Product } from '../../pages/public/Product/Product';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import toast from 'react-hot-toast';
+import type { Product } from '../../pages/public/Product/Product';
 
 interface ProductModalProps {
   product: Product;
@@ -19,43 +20,52 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  // Extração única de tamanhos, cores e numerações das variações vindas do banco
   const sizes = [...new Set(product.variations?.filter(v => v?.type === 'Tamanho').map(v => v.value))];
   const colors = [...new Set(product.variations?.filter(v => v?.type === 'Cor').map(v => v.value))];
   const numbers = [...new Set(product.variations?.filter(v => v?.type === 'Numeração').map(v => v.value))];
 
-  // --- LOGICA PARA CAPTURAR O ID REAL DA VARIAÇÃO (DATABASE COMPATIBLE) ---
   const getSelectedVariationId = (): number | null => {
     const variation = product.variations?.find(v => 
       (sizes.length > 0 ? v.value === selectedSize : true) &&
       (colors.length > 0 ? v.value === selectedColor : true) &&
       (numbers.length > 0 ? v.value === selectedNum : true)
     );
-    
-    // Retorna o variation_id do seu log convertido para Number
-    return variation ? Number(variation.variation_id) : null;
+    return variation ? Number(variation.variation_id || variation.id) : null;
   };
 
   const handleAction = (isBuyNow = false) => {
-    // Validações de seleção obrigatória
+    // Validações
     if (sizes.length > 0 && !selectedSize) return toast.error("Selecione um tamanho!");
     if (colors.length > 0 && !selectedColor) return toast.error("Selecione uma cor!");
     if (numbers.length > 0 && !selectedNum) return toast.error("Selecione a numeração!");
 
-    // Resolve o erro ts(2345): converte null para undefined para a função addToCart
     const variationId = getSelectedVariationId() ?? undefined;
 
     if (isBuyNow) {
-      // Fluxo Comprar Agora: Adiciona e redireciona
+      // 1. Adiciona ao carrinho
       addToCart(product, selectedSize || selectedNum, selectedColor, variationId);
-      navigate('/endereco');
+      // 2. Fecha o modal primeiro para limpar o body overflow
+      onClose();
+      // 3. Navega para o checkout (ou endereço como estava no seu código)
+      // Certifique-se de que a rota '/endereco' existe no seu App.tsx
+      setTimeout(() => {
+        navigate('/endereco');
+      }, 100);
     } else {
-      // Fluxo Adicionar ao Carrinho: Animação e fecha
       setIsAdding(true);
       addToCart(product, selectedSize || selectedNum, selectedColor, variationId);
-
+      
       setTimeout(() => {
         setIsAdding(false);
         onClose(); 
@@ -63,141 +73,142 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl relative flex flex-col md:flex-row leading-none italic text-left">
-
-        {/* BOTÃO FECHAR */}
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8 bg-black/75 backdrop-blur-sm animate-in fade-in duration-300 italic">
+      <div className="bg-white w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-[1.5rem] shadow-2xl relative flex flex-col md:flex-row leading-none text-left border border-zinc-100">
+        
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-white/80 p-2 rounded-full hover:bg-black hover:text-white transition-all shadow-md"
+          className="absolute top-4 right-4 z-50 bg-white/90 p-1.5 rounded-full hover:bg-black hover:text-white transition-all shadow-md text-zinc-400"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
-        {/* LADO ESQUERDO: IMAGEM */}
-        <div className="w-full md:w-1/2 bg-zinc-100 flex items-center justify-center">
+        <div className="w-full md:w-[40%] bg-zinc-50 flex items-center justify-center overflow-hidden border-r border-zinc-50">
           <img
-            src={product.image_url}
+            src={product.image_url || (product as any).image_1}
             alt={product.name}
-            className="w-full h-full object-cover max-h-[500px] md:max-h-full transition-transform duration-500 hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
           />
         </div>
 
-        {/* LADO DIREITO: INFORMAÇÕES */}
-        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-between">
-          <div className="space-y-6">
+        <div className="w-full md:w-[60%] p-6 md:p-8 overflow-y-auto custom-scrollbar flex flex-col justify-between bg-white">
+          <div className="space-y-5">
             <div>
-              <span className="text-[10px] font-black uppercase text-yellow-600 tracking-[0.2em] mb-2 block leading-none">
+              <span className="text-[9px] font-black uppercase text-yellow-600 tracking-[0.2em] mb-1.5 block leading-none">
                 {product.brand_name} • {product.category_name}
               </span>
-              <h2 className="text-3xl font-black uppercase italic text-zinc-900 leading-tight">
+              <h2 className="text-2xl font-black uppercase text-zinc-900 tracking-tighter leading-tight mb-2">
                 {product.name}
               </h2>
-              <div className="flex items-center gap-2 mt-2 leading-none">
+              <div className="flex items-center gap-1.5">
                 <div className="flex text-yellow-500">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
+                  {[...Array(5)].map((_, i) => <Star key={i} size={11} fill="currentColor" />)}
                 </div>
-                <span className="text-[10px] font-bold text-zinc-400 uppercase italic leading-none">(12 avaliações)</span>
+                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">12 avaliações</span>
               </div>
             </div>
 
-            <div className="flex flex-col leading-none">
-              {product.old_price && (
-                <span className="text-sm text-zinc-400 line-through font-bold italic mb-1 leading-none">
-                  R$ {Number(product.old_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            <div className="flex flex-col py-2 border-y border-zinc-50">
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-black tracking-tighter">
+                  R$ {Number(product.price).toFixed(2)}
                 </span>
-              )}
-              <span className="text-4xl font-black text-yellow-600 italic tracking-tighter leading-none">
-                R$ {Number(product.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </span>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase mt-2 italic leading-none">
-                ou 12x de R$ {(Number(product.price) / 12).toFixed(2)} sem juros
-              </span>
+                {product.old_price && (
+                  <span className="text-xs text-zinc-300 line-through font-bold">
+                    R$ {Number(product.old_price).toFixed(2)}
+                  </span>
+                )}
+              </div>
+              <p className="text-[9px] font-bold text-zinc-400 uppercase mt-1">
+                ou 12x de <span className="text-zinc-600">R$ {(Number(product.price) / 12).toFixed(2)}</span> sem juros
+              </p>
             </div>
 
-            {/* SELEÇÃO DE CORES */}
-            {colors.length > 0 && (
-              <div>
-                <h4 className="text-[11px] font-black uppercase italic mb-3 leading-none">Selecione a Cor:</h4>
-                <div className="flex gap-3 leading-none">
-                  {colors.map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setSelectedColor(color)}
-                      className={`px-4 py-2 text-[10px] font-black uppercase border-2 transition-all leading-none ${selectedColor === color ? 'border-black bg-black text-white' : 'border-zinc-100 hover:border-zinc-300'
+            <div className="space-y-4">
+              {colors.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-black uppercase mb-2 text-zinc-400">Cor</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {colors.map(color => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setSelectedColor(color)}
+                        className={`px-3 py-1.5 text-[9px] font-black uppercase border transition-all rounded ${
+                          selectedColor === color ? 'border-black bg-black text-white' : 'border-zinc-100 text-zinc-400'
                         }`}
-                    >
-                      {color}
-                    </button>
-                  ))}
+                      >
+                        {color}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* SELEÇÃO DE TAMANHOS / NUMERAÇÃO */}
-            {(sizes.length > 0 || numbers.length > 0) && (
-              <div>
-                <h4 className="text-[11px] font-black uppercase italic mb-3 leading-none">
-                    {sizes.length > 0 ? 'Selecione o Tamanho:' : 'Selecione a Numeração:'}
-                </h4>
-                <div className="flex flex-wrap gap-2 leading-none">
-                  {(sizes.length > 0 ? sizes : numbers).map(val => (
-                    <button
-                      key={val}
-                      onClick={() => sizes.length > 0 ? setSelectedSize(val) : setSelectedNum(val)}
-                      className={`w-12 h-12 text-xs font-black border-2 transition-all flex items-center justify-center rounded-lg leading-none ${
-                        (selectedSize === val || selectedNum === val) 
-                        ? 'border-yellow-600 bg-yellow-600 text-white shadow-lg' 
-                        : 'border-zinc-100 hover:border-black'
+              {(sizes.length > 0 || numbers.length > 0) && (
+                <div>
+                  <h4 className="text-[10px] font-black uppercase mb-2 text-zinc-400">
+                    {sizes.length > 0 ? 'Tamanho' : 'Numeração'}
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(sizes.length > 0 ? sizes : numbers).map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => sizes.length > 0 ? setSelectedSize(val) : setSelectedNum(val)}
+                        className={`w-10 h-10 text-[11px] font-black border transition-all flex items-center justify-center rounded-lg ${
+                          (selectedSize === val || selectedNum === val) 
+                          ? 'border-yellow-500 bg-yellow-500 text-black shadow-md' 
+                          : 'border-zinc-100 text-zinc-400'
                         }`}
-                    >
-                      {val}
-                    </button>
-                  ))}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          {/* BOTÕES DE AÇÃO */}
-          <div className="mt-10 space-y-3 leading-none">
-            {/* COMPRAR AGORA (FLUXO DIRETO) */}
+          <div className="mt-6 space-y-2">
             <button 
+              type="button"
               onClick={() => handleAction(true)}
-              className="w-full bg-black text-white py-5 rounded-xl font-black uppercase italic text-sm hover:bg-yellow-600 hover:text-black transition-all shadow-xl flex items-center justify-center gap-3 active:scale-95 leading-none"
+              className="w-full bg-black text-white py-4 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-yellow-600 hover:text-black transition-all active:scale-95 shadow-lg"
             >
               Comprar Agora
             </button>
 
-            {/* ADICIONAR AO CARRINHO */}
             <button
+              type="button"
               onClick={() => handleAction(false)}
               disabled={isAdding}
-              className="w-full border-2 border-black py-5 rounded-xl font-black uppercase italic text-sm hover:bg-zinc-50 transition-all flex items-center justify-center gap-3 active:scale-95 leading-none"
+              className="w-full border border-black py-4 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all hover:bg-zinc-50 active:scale-95"
             >
-              {isAdding ? (
-                <Check size={18} className="animate-bounce" />
-              ) : (
-                <ShoppingCart size={18} />
-              )}
+              {isAdding ? <Check size={14} className="text-green-600" /> : <ShoppingCart size={14} />}
               {isAdding ? "Adicionado!" : "Adicionar ao Carrinho"}
             </button>
-          </div>
 
-          {/* BENEFÍCIOS RÁPIDOS */}
-          <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-6 leading-none">
-            <div className="flex items-center gap-2 leading-none">
-              <Truck size={16} className="text-yellow-600" />
-              <span className="text-[9px] font-bold uppercase italic leading-none">Entrega em todo Brasil</span>
-            </div>
-            <div className="flex items-center gap-2 leading-none">
-              <ShieldCheck size={16} className="text-yellow-600" />
-              <span className="text-[9px] font-bold uppercase italic leading-none">Compra 100% Segura</span>
+            <div className="flex justify-center gap-4 pt-3">
+               <div className="flex items-center gap-1.5 opacity-50">
+                  <Truck size={12} />
+                  <span className="text-[8px] font-black uppercase">Entrega Express</span>
+               </div>
+               <div className="flex items-center gap-1.5 opacity-50">
+                  <ShieldCheck size={12} />
+                  <span className="text-[8px] font-black uppercase">Compra Segura</span>
+               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #eab308; border-radius: 10px; }
+      `}</style>
+    </div>,
+    document.body
   );
 }
