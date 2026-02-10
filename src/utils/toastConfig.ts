@@ -1,4 +1,5 @@
 export const premiumToastOptions = {
+  duration: 4000,
   style: {
     background: '#18181b',
     color: '#fff',

@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { User, ShoppingCart, Menu as MenuIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { User, ShoppingCart, Menu as MenuIcon, ShieldCheck } from 'lucide-react';
 
 import SearchBar from '../../searchs/SearchBar';
 import NavBar from '../../NavBar/NavBar';
+import ProfileDropdown from '../../ProfileDropdown/ProfileDropdown'; // Importe o componente que refatoramos
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
 
@@ -11,177 +12,195 @@ interface HeaderProps {
   onToggleAdminMenu?: () => void;
 }
 
+/**
+ * @component Header
+ * @description Centro de comando da loja Gold Store. Otimizado para SEO de IA e performance mobile.
+ */
 export default function Header({ onToggleAdminMenu }: HeaderProps) {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { totalItems } = useCart();
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  const { user, isAuthenticated, logout } = useAuth();
+  const { totalItems } = useCart();
+  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  // Efeito para mudar estilo ao scrollar (Melhora UI/UX)
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Fecha menus ao mudar de rota
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setIsProfileOpen(false);
+  }, [location]);
 
   return (
-    <header className="w-full sticky top-0 z-50">
-      {/* Faixa Principal */}
-      <div className="w-full bg-black py-4 shadow-xl border-b border-white/5">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-8 flex items-center justify-between gap-4 md:gap-6">
+    <header
+      className={`w-full sticky top-0 z-[100] transition-all duration-300 ${isScrolled ? 'bg-black/90 backdrop-blur-md shadow-2xl' : 'bg-black'
+        }`}
+      role="banner"
+    >
+      {/* --- TOP BAR (TRUST & INFO) --- */}
+      <div className="hidden md:flex w-full bg-zinc-900/50 border-b border-white/5 py-2">
+        <div className="max-w-[1440px] mx-auto px-8 flex justify-between items-center w-full">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-zinc-400 text-[9px] font-black uppercase tracking-widest">
+              <ShieldCheck size={12} className="text-yellow-500" />
+              Site 100% Seguro
+            </div>
+          </div>
+          <span className="text-zinc-500 text-[9px] font-black uppercase tracking-widest italic">
+            Qualidade Tailandesa 1:1 • Envio para todo Brasil
+          </span>
+        </div>
+      </div>
 
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0 transition-transform active:scale-95">
-            <img
-              // Adicionada a barra "/" no início para tornar o caminho absoluto
-              src="assets/images/logo.png"
-              alt="Gold Store Multimarcas"
-              className="h-12 md:h-20 w-auto"
-            />
+      {/* --- MAIN HEADER --- */}
+      <div className="w-full py-3 md:py-5 px-4 md:px-8">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4 md:gap-10">
+
+          {/* Menu Mobile Trigger */}
+          <button
+            aria-label="Abrir menu de navegação"
+            className="md:hidden text-white p-2 hover:bg-white/10 rounded-xl transition-all active:scale-90"
+            onClick={() => setMobileMenuOpen(true)}
+          >
+            <MenuIcon className="w-7 h-7" />
+          </button>
+
+          {/* Logo - Estabilizada para evitar Layout Shift */}
+          <Link
+            to="/"
+            className="flex-shrink-0 flex items-center justify-center transition-transform active:scale-95 duration-300"
+            aria-label="Gold Store - Início"
+          >
+            <div className="relative h-10 md:h-16 lg:h-20 w-auto aspect-[3/1] flex items-center">
+              {/* O aspect-ratio deve ser proporcional à sua logo real, ex: 3/1 ou 4/1 */}
+              <img
+                src="assets/images/logo.png"
+                alt="Logo Gold Store Multimarcas"
+                // Definimos dimensões para que o navegador reserve o espaço
+                className="h-full w-full object-contain"
+                // loading="eager" força o carregamento imediato (prioritário para LCP)
+                loading="eager"
+                // fetchpriority="high" avisa ao navegador que esta imagem é essencial
+                fetchPriority="high"
+                // Fallback para caso a imagem demore: não deixa o container colapsar
+                onLoad={(e) => (e.currentTarget.style.opacity = "1")}
+                style={{ opacity: 0, transition: "opacity 0.2s ease-in" }}
+              />
+            </div>
           </Link>
 
-          {/* Busca Desktop */}
-          <div className="hidden md:flex flex-1 max-w-xl">
+          {/* Busca Desktop - UX Focal Point */}
+          <div className="hidden md:flex flex-1 max-w-2xl animate-in fade-in slide-in-from-top-1 duration-500">
             <SearchBar />
           </div>
 
-          {/* Ações do Usuário */}
-          <div className="flex items-center gap-3 md:gap-6">
+          {/* Actions Area */}
+          <div className="flex items-center gap-2 md:gap-6">
 
-            {/* Conta / Perfil */}
-            <div className="relative flex items-center gap-2 md:gap-3">
-
-              {/* ================= DESLOGADO ================= */}
-              {!isAuthenticated && (
-                <>
+            {/* User Account Section */}
+            <div className="relative group italic">
+              {!isAuthenticated ? (
+                <div className="flex items-center gap-3">
                   <Link
                     to="/login"
-                    className="p-1 hover:bg-white/10 rounded-full transition-colors group"
+                    className="p-2.5 bg-white/5 hover:bg-yellow-500 hover:text-black rounded-2xl transition-all duration-300 group shadow-xl"
+                    aria-label="Entrar na conta"
                   >
-                    <User className="w-7 h-7 md:w-8 md:h-8 text-white stroke-[1.2] group-hover:text-yellow-500 transition-colors" />
+                    <User className="w-6 h-6 md:w-7 md:h-7 stroke-[1.5]" />
                   </Link>
 
-                  <div className="hidden lg:flex flex-col text-left leading-none">
-                    <Link
-                      to="/cadastre-se"
-                      className="text-[10px] text-gray-400 font-bold uppercase tracking-widest hover:text-yellow-500 transition-colors mb-1"
-                    >
+                  <div className="hidden lg:flex flex-col text-left leading-tight">
+                    <Link to="/cadastre-se" className="text-[9px] text-zinc-500 font-black uppercase tracking-widest hover:text-yellow-500 transition-colors">
                       Olá, Cadastre-se
                     </Link>
-
-                    <Link
-                      to="/login"
-                      className="text-[14px] text-white font-black uppercase italic tracking-tighter hover:text-yellow-500 transition-colors"
-                    >
+                    <Link to="/login" className="text-[13px] text-white font-black uppercase tracking-tighter hover:text-yellow-500 transition-colors">
                       Minha Conta
                     </Link>
                   </div>
-                </>
-              )}
-
-              {/* ================= LOGADO ================= */}
-              {isAuthenticated && (
-                <>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => setIsProfileOpen((prev) => !prev)}
-                    className="p-1 hover:bg-white/10 rounded-full transition-colors group"
+                    className={`p-2.5 rounded-2xl transition-all duration-300 shadow-xl border ${isProfileOpen
+                        ? 'bg-yellow-500 text-black border-yellow-500'
+                        : 'bg-white/5 text-yellow-500 border-white/10 hover:border-yellow-500/50'
+                      }`}
                   >
-                    <User className="w-7 h-7 md:w-8 md:h-8 text-yellow-500 stroke-[1.5]" />
+                    <User className="w-6 h-6 md:w-7 md:h-7 stroke-[2]" />
                   </button>
 
-                  <div className="hidden lg:flex flex-col text-left leading-none">
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">
-                      Olá,
-                    </span>
-                    <span className="text-[14px] text-white font-black uppercase italic tracking-tighter">
+                  <div className="hidden lg:flex flex-col text-left leading-tight cursor-pointer" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+                    <span className="text-[9px] text-zinc-500 font-black uppercase tracking-widest">Bem-vindo,</span>
+                    <span className="text-[13px] text-white font-black uppercase tracking-tighter truncate max-w-[100px]">
                       {user?.name.split(' ')[0]}
                     </span>
                   </div>
 
-                  {/* Dropdown Perfil */}
-                  {isProfileOpen && (
-                    <div className="absolute right-0 top-12 w-52 bg-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                      <ul className="flex flex-col text-sm">
-
-                        <li>
-                          <Link
-                            to="/perfil"
-                            className="block px-4 py-3 text-white hover:bg-yellow-500 hover:text-black transition-colors"
-                            onClick={() => setIsProfileOpen(false)}
-                          >
-                            Meus Dados
-                          </Link>
-                        </li>
-
-                        <li>
-                          <Link
-                            to="/configuracoes"
-                            className="block px-4 py-3 text-white hover:bg-yellow-500 hover:text-black transition-colors"
-                            onClick={() => setIsProfileOpen(false)}
-                          >
-                            Configurações
-                          </Link>
-                        </li>
-
-                        <li>
-                          <Link
-                            to="/meus-pedidos"
-                            className="block px-4 py-3 text-white hover:bg-yellow-500 hover:text-black transition-colors"
-                            onClick={() => setIsProfileOpen(false)}
-                          >
-                            Meus Pedidos
-                          </Link>
-                        </li>
-
-                        <li className="border-t border-white/10">
-                          <button
-                            onClick={() => {
-                              logout();
-                              setIsProfileOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-500 hover:text-white transition-colors"
-                          >
-                            Sair
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </>
+                  {/* Componente Dropdown Refatorado */}
+                  <ProfileDropdown
+                    isOpen={isProfileOpen}
+                    onClose={() => setIsProfileOpen(false)}
+                  />
+                </div>
               )}
             </div>
 
-            {/* Carrinho */}
+            {/* Shopping Cart - UX High Visibility */}
             <Link
               to="/carrinho"
-              className="relative group p-1 transition-transform active:scale-90"
+              className="relative p-2.5 bg-white/5 hover:bg-zinc-800 rounded-2xl transition-all duration-300 group shadow-xl active:scale-90"
+              aria-label={`Carrinho com ${totalItems} itens`}
             >
-              <ShoppingCart className="w-7 h-7 md:w-8 md:h-8 text-white stroke-[1.2] group-hover:text-yellow-500 transition-colors" />
+              <ShoppingCart className="w-6 h-6 md:w-7 md:h-7 text-white stroke-[1.5] group-hover:text-yellow-500 transition-colors" />
 
-              {/* Só mostramos a bolinha se houver mais de 0 itens */}
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-2 flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-yellow-500 text-[10px] md:text-[12px] font-black text-black ring-2 ring-black animate-in zoom-in duration-300">
+                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-lg bg-yellow-500 text-[10px] md:text-[11px] font-black text-black ring-[3px] ring-black animate-in zoom-in duration-500">
                   {totalItems}
                 </span>
               )}
             </Link>
-
-            {/* Menu Mobile */}
-            <button
-              className="md:hidden text-white p-1 focus:outline-none transition-colors hover:text-yellow-500"
-              onClick={() => setMobileMenuOpen(true)}
-            >
-              <MenuIcon className="w-8 h-8" />
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Menu de Navegação - AGORA RECEBENDO A FUNÇÃO DO PAINEL */}
+      {/* --- NAVIGATION MENU (DESKTOP) --- */}
       <NavBar
         isOpen={isMobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         onToggleAdminMenu={onToggleAdminMenu}
       />
 
-      {/* Busca Mobile */}
-      <div className="md:hidden bg-black px-4 pb-4 border-b border-white/5">
-        <SearchBar />
+      {/* --- MOBILE SEARCH BAR (Fills the gap on small screens) --- */}
+      <div className="md:hidden bg-black px-4 pb-4 animate-in slide-in-from-top-2 duration-300">
+        <div className="relative">
+          <SearchBar />
+        </div>
       </div>
+
+      
+
+      {/* Structured Data para IA (JSON-LD) */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Gold Store Multimarcas",
+          "url": window.location.origin,
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": `${window.location.origin}/busca?q={search_term_string}`,
+            "query-input": "required name=search_term_string"
+          }
+        })}
+      </script>
     </header>
   );
 }

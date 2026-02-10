@@ -11,7 +11,7 @@ import {
   Package
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query'; // Hook de cache
+import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '../../context/AuthContext';
 import { getSubcategories } from '../../services/Subcategories/subcategories';
@@ -48,16 +48,10 @@ const SUPORTE_LINKS = [
 ];
 
 /* =========================
-   Sub-Componentes (Desktop)
+   Sub-Componentes
 ========================= */
 
-function DropdownCategories({
-  categories,
-  isLoading
-}: {
-  categories: CategoryWithSub[],
-  isLoading: boolean
-}) {
+function DropdownCategories({ categories, isLoading }: { categories: CategoryWithSub[], isLoading: boolean }) {
   return (
     <li className="relative group">
       <button className="flex items-center gap-1.5 text-[12px] font-black uppercase tracking-widest hover:text-yellow-600 transition-colors py-2">
@@ -66,7 +60,6 @@ function DropdownCategories({
       </button>
 
       <ul className="absolute left-0 top-full w-64 bg-white shadow-2xl border border-zinc-100 rounded-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
-
         {isLoading && (
           <div className="flex items-center justify-center p-4">
             <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
@@ -75,7 +68,6 @@ function DropdownCategories({
 
         {!isLoading && categories.map((cat) => {
           const hasSubs = cat.subcategories && cat.subcategories.length > 0;
-
           return (
             <li key={cat.id} className="relative group/sub">
               <Link
@@ -87,13 +79,7 @@ function DropdownCategories({
               </Link>
 
               {hasSubs && (
-                <ul className="
-                  absolute left-[100%] top-[-8px] ml-[2px] 
-                  w-60 bg-white border border-zinc-100 shadow-2xl rounded-xl py-2 
-                  opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible 
-                  transition-all duration-200 z-[110]
-                  max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-200
-                ">
+                <ul className="absolute left-[100%] top-[-8px] ml-[2px] w-60 bg-white border border-zinc-100 shadow-2xl rounded-xl py-2 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 z-[110] max-h-[70vh] overflow-y-auto">
                   {cat.subcategories?.map((sub) => (
                     <li key={sub.id}>
                       <Link
@@ -114,21 +100,15 @@ function DropdownCategories({
   );
 }
 
-/* =========================
-   Componente Principal NavBar
-========================= */
 export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarProps) {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
-
   const { user, isAuthenticated } = useAuth();
   const hasAdminAccess = user?.role.name === 'ADMIN' || user?.role.name === 'SUPORTE';
 
-
-  // --- IMPLEMENTAÇÃO DO CACHE ---
   const { data: categories = [], isLoading } = useQuery<CategoryWithSub[]>({
     queryKey: ['subcategories-menu'],
     queryFn: getSubcategories,
-    staleTime: Infinity, // Os dados nunca ficam "velhos" na sessão atual
+    staleTime: Infinity,
   });
 
   return (
@@ -156,14 +136,12 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
               items={SUPORTE_LINKS.map(l => ({ label: l.name, to: l.path, icon: l.icon }))}
             />
 
-            {/* LINK DIFERENCIADO: MEUS PEDIDOS (Apenas Logados) */}
-            {isAuthenticated && (
-              <li>
-                <Link to="/meus-pedidos" className="flex items-center gap-2 text-[12px] font-black text-zinc-900 uppercase tracking-widest hover:text-yellow-600 transition-all italic border-l pl-8 border-zinc-200 ml-2">
-                  <Package className="w-4 h-4 text-yellow-600" /> Meus Pedidos
-                </Link>
-              </li>
-            )}
+            {/* LINK MEUS PEDIDOS: Sempre visível para usuários logados ou visitantes */}
+            <li>
+              <Link to="/meus-pedidos" className="flex items-center gap-2 text-[12px] font-black text-zinc-900 uppercase tracking-widest hover:text-yellow-600 transition-all italic border-l pl-8 border-zinc-200 ml-2">
+                <Package className="w-4 h-4 text-yellow-600" /> Meus Pedidos
+              </Link>
+            </li>
 
             {/* PAINEL ADMIN */}
             {isAuthenticated && hasAdminAccess && (
@@ -187,16 +165,15 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
           </header>
 
           <div className="overflow-y-auto h-[calc(100%-80px)]">
-            {/* LINK DIFERENCIADO MOBILE: MEUS PEDIDOS */}
-            {isAuthenticated && (
-              <Link
-                to="/meus-pedidos"
-                onClick={onClose}
-                className="flex items-center gap-4 p-6 font-black uppercase text-[12px] tracking-widest text-white bg-zinc-900 border-b border-white/10"
-              >
-                <Package className="w-5 h-5 text-yellow-500" /> Meus Pedidos
-              </Link>
-            )}
+            
+            {/* LINK MEUS PEDIDOS MOBILE: No topo para fácil acesso de visitantes */}
+            <Link
+              to="/meus-pedidos"
+              onClick={onClose}
+              className="flex items-center gap-4 p-6 font-black uppercase text-[12px] tracking-widest text-white bg-zinc-950 border-b border-white/5"
+            >
+              <Package className="w-5 h-5 text-yellow-500" /> Meus Pedidos / Rastreio
+            </Link>
 
             <MobileAccordion title="Categorias" open={isCategoriesOpen} toggle={() => setIsCategoriesOpen(!isCategoriesOpen)}>
               {categories.map((cat) => (
@@ -209,7 +186,6 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
               ))}
             </MobileAccordion>
 
-            {/* Links de Suporte no Mobile */}
             <div className="py-4">
               {SUPORTE_LINKS.map(link => (
                 <Link key={link.path} to={link.path} onClick={onClose} className="flex items-center gap-3 p-4 pl-6 text-[11px] font-bold uppercase text-zinc-600 hover:text-black">
@@ -245,7 +221,11 @@ function DropdownStatic({ label, items }: { label: string; items: any[] }) {
       </button>
       <ul className="absolute left-0 top-full w-56 bg-white shadow-2xl border border-zinc-100 rounded-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100]">
         {items.map((item) => (
-          <li key={item.label}><Link to={item.to} className="flex items-center gap-3 px-5 py-3 text-[11px] font-bold uppercase text-zinc-600 hover:bg-yellow-50 hover:text-black">{item.icon} {item.label}</Link></li>
+          <li key={item.label}>
+            <Link to={item.to} className="flex items-center gap-3 px-5 py-3 text-[11px] font-bold uppercase text-zinc-600 hover:bg-yellow-50 hover:text-black">
+              {item.icon} {item.label}
+            </Link>
+          </li>
         ))}
       </ul>
     </li>
@@ -255,7 +235,9 @@ function DropdownStatic({ label, items }: { label: string; items: any[] }) {
 function MobileAccordion({ title, open, toggle, children }: { title: string; open: boolean; toggle: () => void; children: React.ReactNode }) {
   return (
     <div className="border-b border-zinc-100">
-      <button onClick={toggle} className="flex justify-between w-full p-6 font-black uppercase text-[12px] tracking-widest">{title} <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} /></button>
+      <button onClick={toggle} className="flex justify-between w-full p-6 font-black uppercase text-[12px] tracking-widest">
+        {title} <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
       <div className={`${open ? 'block' : 'hidden'} bg-white`}>{children}</div>
     </div>
   );

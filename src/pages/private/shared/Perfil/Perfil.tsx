@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { User, Mail, Phone, Calendar, Edit3, Shield, Loader2 } from "lucide-react";
 import EditProfileModal from "../../../../components/modals/EditProfileModal";
-import { getMe } from "../../../../services/Users/cadastre-se";
+import { getMe } from "../../../../services/Users/users";
 
 export default function ProfilePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);

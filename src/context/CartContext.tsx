@@ -1,144 +1,159 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { 
+    createContext, 
+    useContext, 
+    useState, 
+    useEffect, 
+    useCallback, 
+    useMemo 
+} from 'react';
 import toast from 'react-hot-toast';
 
-interface CartItem {
-    id: string | number;
+/** * INTERFACES TÉCNICAS */
+export interface CartItem {
+    id: number;
     name: string;
-    price: number;
+    price: number;         
+    sale_price: number;    
+    discount: number;      
     image: string;
     quantity: number;
-    size?: string;
-    color?: string;
-    // Adicionado para suportar o banco de dados
-    variation_id?: number | null; 
+    size?: string | null;
+    color?: string | null;
+    variation_id: number | null; 
+}
+
+interface ProductInput {
+    id: number;
+    name: string;
+    price: string | number;
+    sale_price?: string | number;
+    discount_percentage?: number;
+    image_1?: string;
+    image_url?: string;
+}
+
+interface VariationInput {
+    id: number;
+    extra_price?: string | number;
+    value?: string;
 }
 
 interface CartContextType {
     cart: CartItem[];
-    // Atualizado para aceitar variationId
-    addToCart: (product: any, selectedSize?: string, selectedColor?: string, variationId?: number) => void;
-    removeFromCart: (id: string | number) => void;
-    updateQuantity: (id: string | number, delta: number) => void;
+    addToCart: (product: ProductInput, variation?: VariationInput | null) => void;
+    removeFromCart: (id: number, variationId: number | null) => void;
+    updateQuantity: (id: number, variationId: number | null, delta: number) => void;
     clearCart: () => void;
     totalItems: number;
     totalPrice: number;
-    orders: any[];
-    completeOrder: (paymentData: any) => void;
 }
 
+const CART_STORAGE_KEY = '@app:cart';
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-    // Estado do Carrinho
     const [cart, setCart] = useState<CartItem[]>(() => {
-        const savedCart = localStorage.getItem('@app:cart');
-        return savedCart ? JSON.parse(savedCart) : [];
+        try {
+            const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+            return savedCart ? JSON.parse(savedCart) : [];
+        } catch (error) {
+            console.error("Erro ao carregar carrinho", error);
+            return [];
+        }
     });
 
-    // Estado dos Pedidos Finalizados
-    const [orders, setOrders] = useState<any[]>(() => {
-        const savedOrders = localStorage.getItem('@app:orders');
-        return savedOrders ? JSON.parse(savedOrders) : [];
-    });
-
-    // Sincroniza Carrinho com LocalStorage
     useEffect(() => {
-        localStorage.setItem('@app:cart', JSON.stringify(cart));
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     }, [cart]);
 
-    // Sincroniza Pedidos com LocalStorage
-    useEffect(() => {
-        localStorage.setItem('@app:orders', JSON.stringify(orders));
-    }, [orders]);
+    /**
+     * ADICIONAR AO CARRINHO
+     */
+    const addToCart = useCallback((product: ProductInput, variation: VariationInput | null = null) => {
+        const vId = variation?.id || null;
+        
+        const isExisting = cart.some(item => item.id === product.id && item.variation_id === vId);
 
-    const addToCart = (product: any, selectedSize?: string, selectedColor?: string, variationId?: number) => {
+        if (isExisting) {
+            toast.success(`Quantidade de ${product.name} aumentada!`);
+        } else {
+            toast.success(`${product.name} adicionado ao carrinho!`);
+        }
+
         setCart(prevCart => {
-            // A lógica de "item existente" agora considera o ID do produto E a variação
-            const existingItem = prevCart.find(item =>
-                item.id === product.id && item.variation_id === variationId
+            const existingItemIndex = prevCart.findIndex(item =>
+                item.id === product.id && item.variation_id === vId
             );
 
-            if (existingItem) {
-                return prevCart.map(item =>
-                    (item.id === product.id && item.variation_id === variationId)
-                        ? { ...item, quantity: item.quantity + 1 }
-                        : item
-                );
+            if (existingItemIndex >= 0) {
+                const newCart = [...prevCart];
+                newCart[existingItemIndex] = {
+                    ...newCart[existingItemIndex],
+                    quantity: newCart[existingItemIndex].quantity + 1
+                };
+                return newCart;
             }
 
-            console.log(product)
-            return [...prevCart, {
+            const basePrice = Number(product.price);
+            const salePrice = product.sale_price ? Number(product.sale_price) : basePrice;
+            const extraFromVariation = variation?.extra_price ? Number(variation.extra_price) : 0;
+
+            const newItem: CartItem = {
                 id: product.id,
                 name: product.name,
-                price: Number(product.price),
-                image: product.image_url || product.image_1,
+                price: basePrice + extraFromVariation,
+                sale_price: salePrice + extraFromVariation,
+                discount: product.discount_percentage || 0,
+                image: product.image_1 || product.image_url || '',
                 quantity: 1,
-                size: selectedSize,
-                color: selectedColor,
-                variation_id: variationId || null // Armazena o ID vindo do banco
-            }];
+                size: variation?.value || null,
+                variation_id: vId
+            };
+
+            return [...prevCart, newItem];
         });
+    }, [cart]);
 
-        toast.success("🔥 Adicionado ao carrinho!");
-    };
-
-    const updateQuantity = (id: string | number, delta: number) => {
+    const updateQuantity = useCallback((id: number, variationId: number | null, delta: number) => {
         setCart(prev => prev.map(item => {
-            if (item.id === id) {
-                const newQty = Math.max(1, item.quantity + delta);
-                return { ...item, quantity: newQty };
+            if (item.id === id && item.variation_id === variationId) {
+                return { ...item, quantity: Math.max(1, item.quantity + delta) };
             }
             return item;
         }));
-    };
+    }, []);
 
-    const removeFromCart = (id: string | number) => {
-        setCart(prev => prev.filter(item => item.id !== id));
+    const removeFromCart = useCallback((id: number, variationId: number | null) => {
+        setCart(prev => prev.filter(item => 
+            !(item.id === id && item.variation_id === variationId)
+        ));
         toast.error("Item removido");
-    };
+    }, []);
 
-    const clearCart = () => {
+    const clearCart = useCallback(() => {
         setCart([]);
-        localStorage.removeItem('@app:cart');
-    };
+    }, []);
 
-    const completeOrder = (paymentData: any) => {
-        if (cart.length === 0) return;
+    const totalItems = useMemo(() => 
+        cart.reduce((sum, item) => sum + item.quantity, 0), 
+    [cart]);
 
-        const newOrder = {
-            id: `ORD-${Math.floor(Math.random() * 90000) + 10000}`,
-            date: new Date().toLocaleDateString('pt-BR'),
-            status: 'aprovado',
-            statusLabel: 'Pagamento Confirmado',
-            total: paymentData.total,
-            items: [...cart], 
-            mainImage: cart[0].image,
-            itemsCount: cart.reduce((sum, item) => sum + item.quantity, 0),
-            paymentMethod: paymentData.method,
-            estimate: "Entrega em até 7 dias úteis"
-        };
+    const totalPrice = useMemo(() => 
+        cart.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0), 
+    [cart]);
 
-        setOrders(prev => [newOrder, ...prev]);
-        clearCart();
-    };
-
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const contextValue = useMemo(() => ({
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalItems,
+        totalPrice
+    }), [cart, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice]);
 
     return (
-        <CartContext.Provider 
-            value={{ 
-                cart, 
-                addToCart, 
-                removeFromCart, 
-                updateQuantity, 
-                clearCart, 
-                totalItems, 
-                totalPrice,
-                orders,
-                completeOrder
-            }}
-        >
+        <CartContext.Provider value={contextValue}>
             {children}
         </CartContext.Provider>
     );
@@ -146,8 +161,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 export const useCart = () => {
     const context = useContext(CartContext);
-    if (!context) {
-        throw new Error('useCart deve ser usado dentro de um CartProvider');
-    }
+    if (!context) throw new Error('useCart deve ser usado dentro de um CartProvider');
     return context;
 };

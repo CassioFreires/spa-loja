@@ -14,43 +14,35 @@ export const getProducts = async (
     filters?: any
 ): Promise<any> => {
     try {
-        const params: any = {
+        const params = {
             page,
-            limit: 12,
+            limit: filters?.limit || 12,
             active: 'true',
             ...filters
         };
 
-        // AJUSTE AQUI: Se o usuário selecionou uma marca, 
-        // priorizamos a marca e removemos o filtro restrito de subcategoria
         if (params.brand_id) {
             delete params.subcategory_id;
             delete params.category_id;
         } else if (targetId) {
-            // Se não tem marca selecionada, mantém a navegação normal por ID
             if (isSubcategory) params.subcategory_id = targetId;
             else params.category_id = targetId;
         }
 
-        // Limpeza de campos vazios
-        const cleanParams = Object.fromEntries(
-            Object.entries(params).filter(([_, v]) => v !== '' && v != null)
-        );
-
-        const response = await axiosInstance.get('/products', { params: cleanParams });
-        const products = response.data.data || [];
-
+        const response = await axiosInstance.get('/products', { params });
+        
+        // PADRONIZAÇÃO DO RETORNO:
+        // Sempre retorna um objeto com a lista e metadados
+        const data = response.data;
         return {
-            products,
-            pagination: response.data.pagination,
-            categoryName: products[0]?.brand_name || products[0]?.category_name || products[0]?.subcategory_name
+            products: data.data || [],
+            pagination: data.pagination || null,
+            categoryName: data.data?.[0]?.category_name || ''
         };
     } catch (error: any) {
-        if (error.response?.status === 404) return { products: [], pagination: null, categoryName: '' };
-        throw error;
+        return { products: [], pagination: null };
     }
 };
-
 // Busca os tipos de variações (Tamanho, Cor, Numeração)
 export const getVariationTypes = async () => {
     const response = await axiosInstance.get('/variation-types'); // Crie este endpoint no Nest

@@ -12,10 +12,15 @@ const getHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
 });
 
-export async function getFeaturedProducts() {
-    const result = await axiosInstance.get('/featured-product');
+
+export async function getFeaturedProducts(limit?: number) {
+    const result = await axiosInstance.get('/featured-product', {
+        params: { limit }
+    });
     return result.data;
 }
+
+
 
 export async function createFeaturedProduct(data: { 
     product_id: number; 

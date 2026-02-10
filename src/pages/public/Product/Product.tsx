@@ -1,8 +1,11 @@
+import React, { useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, MessageSquare, Truck, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { Loader2, MessageSquare, Truck, ChevronDown, Filter, X } from 'lucide-react';
 import ProductDetailModal from '../../../components/modals/productDetailModal';
 
+/** * INTERFACES TÉCNICAS
+ * Documentação clara para indexação e manutenção.
+ */
 export interface Product {
   id: number;
   name: string;
@@ -28,6 +31,7 @@ interface ProductPageLayoutProps {
   products: Product[];
   brands: Brand[];
   isLoading: boolean;
+  isTransitioning?: boolean;
   pagination?: {
     total: number;
     lastPage: number;
@@ -48,126 +52,137 @@ export default function ProductPageLayout({
   filters,
   onFilterChange
 }: ProductPageLayoutProps) {
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  // Extração dinâmica baseada nos tipos das migrations (Tamanho, Cor, Numeração)
-  const availableSizes = Array.from(new Set(
-    products.flatMap(p => p.variations?.filter(v => v?.type === 'Tamanho').map(v => v.value) || [])
-  )).sort();
+  // PERFORMANCE: Memoização da extração de variações para evitar loops desnecessários
+  const specs = useMemo(() => {
+    const extract = (type: string) => Array.from(new Set(
+      products.flatMap(p => p.variations?.filter(v => v?.type === type).map(v => v.value) || [])
+    )).sort();
 
-  const availableColors = Array.from(new Set(
-    products.flatMap(p => p.variations?.filter(v => v?.type === 'Cor').map(v => v.value) || [])
-  )).sort();
+    return {
+      sizes: extract('Tamanho'),
+      colors: extract('Cor'),
+      numbers: extract('Numeração')
+    };
+  }, [products]);
 
-  const availableNumbers = Array.from(new Set(
-    products.flatMap(p => p.variations?.filter(v => v?.type === 'Numeração').map(v => v.value) || [])
-  )).sort();
+  const toggleMobileFilters = () => setIsMobileFiltersOpen(!isMobileFiltersOpen);
 
   return (
-    <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 min-h-screen leading-none italic">
-      <div className="flex flex-col md:flex-row gap-10">
+    <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 min-h-screen font-sans italic">
+      {/* HEADER DA PÁGINA: SEO & BREADCRUMBS */}
+      <header className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-4">
+          <nav className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-2 tracking-widest" aria-label="Breadcrumb">
+            <Link to="/" className="hover:text-yellow-600 transition-colors">Início</Link>
+            <span className="text-zinc-300">/</span>
+            <span className="text-zinc-600">{title}</span>
+          </nav>
+          <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-zinc-900 leading-[0.9]">
+            {products.length > 0 ? products[0].category_name : title}
+          </h1>
+        </div>
 
-        {/* SIDEBAR DE FILTROS */}
-        <aside className="hidden md:block w-64 flex-shrink-0 space-y-8">
-          {/* FILTRO DE MARCA */}
-          <section>
-            <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Marca</h4>
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-              {brands.length > 0 ? (
-                brands.map((brand) => (
-                  <label key={brand.id} className="flex items-center gap-3 text-[11px] font-bold uppercase cursor-pointer hover:text-yellow-600 transition-colors">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 accent-black cursor-pointer"
-                      checked={filters.brand_id === brand.id}
-                      onChange={() => onFilterChange({ brand_id: filters.brand_id === brand.id ? '' : brand.id })}
-                    />
-                    <span className={filters.brand_id === brand.id ? "text-black" : "text-zinc-500"}>
-                      {brand.name}
-                    </span>
-                  </label>
-                ))
-              ) : (
-                <span className="text-[10px] text-zinc-400 font-bold uppercase">Carregando marcas...</span>
-              )}
+        <div className="flex items-center gap-3">
+          {/* Botão de Filtros Mobile */}
+          <button 
+            onClick={toggleMobileFilters}
+            className="md:hidden flex-1 flex items-center justify-center gap-2 bg-zinc-100 p-4 rounded-xl font-black text-[10px] uppercase"
+          >
+            <Filter size={16} /> Filtros
+          </button>
+
+          <select
+            aria-label="Ordenar produtos"
+            className="text-[11px] font-black uppercase bg-white border-2 border-zinc-100 px-6 py-3 rounded-full outline-none focus:border-yellow-500 cursor-pointer transition-all"
+            value={filters.sort || 'name_asc'}
+            onChange={(e) => onFilterChange({ sort: e.target.value })}
+          >
+            <option value="name_asc">A-Z</option>
+            <option value="price_asc">Menor Preço</option>
+            <option value="price_desc">Maior Preço</option>
+            <option value="newest">Novidades</option>
+          </select>
+        </div>
+      </header>
+
+      <div className="flex flex-col md:flex-row gap-12 relative">
+        
+        {/* SIDEBAR DE FILTROS: Otimizada para Mobile/Desktop */}
+        <aside className={`
+          fixed inset-0 z-50 bg-white p-8 md:relative md:inset-auto md:z-0 md:bg-transparent md:p-0
+          md:block w-full md:w-64 flex-shrink-0 space-y-8 overflow-y-auto
+          ${isMobileFiltersOpen ? 'block' : 'hidden'}
+        `}>
+          <div className="flex justify-between items-center md:hidden mb-8">
+            <h2 className="font-black uppercase italic text-xl">Filtros</h2>
+            <button onClick={toggleMobileFilters} className="p-2 bg-zinc-100 rounded-full"><X size={24}/></button>
+          </div>
+
+          <section aria-labelledby="filter-brand">
+            <h4 id="filter-brand" className="font-black uppercase text-[12px] tracking-widest mb-4 border-b-2 border-zinc-100 pb-2 text-zinc-800">Marca</h4>
+            <div className="space-y-2.5 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+              {brands.map((brand) => (
+                <label key={brand.id} className="group flex items-center gap-3 text-[11px] font-bold uppercase cursor-pointer hover:text-yellow-600 transition-colors">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 accent-zinc-900 cursor-pointer rounded-none"
+                    checked={filters.brand_id === brand.id}
+                    onChange={() => onFilterChange({ brand_id: filters.brand_id === brand.id ? '' : brand.id })}
+                  />
+                  <span className={filters.brand_id === brand.id ? "text-black font-black" : "text-zinc-500"}>
+                    {brand.name}
+                  </span>
+                </label>
+              ))}
             </div>
           </section>
 
-          {/* FILTRO DE COR (NOVO) */}
-          {availableColors.length > 0 && (
-            <section>
-              <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Cor</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {availableColors.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => onFilterChange({ color: filters.color === color ? '' : color })}
-                    className={`py-2 text-[10px] font-black border transition-all ${filters.color === color
-                      ? 'bg-black text-white border-black'
-                      : 'border-zinc-200 text-zinc-500 hover:border-black'
-                      }`}
-                  >
-                    {color}
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* FILTRO DE TAMANHO */}
-          <section>
-            <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Tamanho</h4>
-            <div className="grid grid-cols-3 gap-2">
-              {availableSizes.length > 0 ? availableSizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => onFilterChange({ size: filters.size === size ? '' : size })}
-                  className={`py-2 text-[10px] font-black border transition-all ${filters.size === size
-                    ? 'bg-black text-white border-black'
-                    : 'border-zinc-200 text-zinc-500 hover:border-black'
-                    }`}
-                >
-                  {size}
-                </button>
-              )) : <span className="text-[10px] text-zinc-400 font-bold col-span-3 text-center py-4 bg-zinc-50 rounded">Sem variações</span>}
-            </div>
-          </section>
-
-          {/* FILTRO DE NUMERAÇÃO (NOVO) */}
-          {availableNumbers.length > 0 && (
-            <section>
-              <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Numeração</h4>
+          {/* Filtros Dinâmicos (Cor, Tamanho, Numeração) */}
+          {[
+            { label: 'Cor', data: specs.colors, key: 'color' },
+            { label: 'Tamanho', data: specs.sizes, key: 'size' },
+            { label: 'Numeração', data: specs.numbers, key: 'size' }
+          ].map((filterGroup) => filterGroup.data.length > 0 && (
+            <section key={filterGroup.label} aria-labelledby={`filter-${filterGroup.label}`}>
+              <h4 id={`filter-${filterGroup.label}`} className="font-black uppercase text-[12px] tracking-widest mb-4 border-b-2 border-zinc-100 pb-2 text-zinc-800">
+                {filterGroup.label}
+              </h4>
               <div className="grid grid-cols-3 gap-2">
-                {availableNumbers.map((num) => (
+                {filterGroup.data.map((val: string) => (
                   <button
-                    key={num}
-                    onClick={() => onFilterChange({ size: filters.size === num ? '' : num })}
-                    className={`py-2 text-[10px] font-black border transition-all ${filters.size === num
-                      ? 'bg-black text-white border-black'
-                      : 'border-zinc-200 text-zinc-500 hover:border-black'
-                      }`}
+                    key={val}
+                    onClick={() => onFilterChange({ [filterGroup.key]: filters[filterGroup.key] === val ? '' : val })}
+                    className={`py-2 text-[9px] font-black border-2 transition-all duration-300 ${
+                      filters[filterGroup.key] === val
+                        ? 'bg-zinc-900 text-white border-zinc-900 shadow-lg'
+                        : 'border-zinc-100 text-zinc-400 hover:border-zinc-300'
+                    }`}
                   >
-                    {num}
+                    {val}
                   </button>
                 ))}
               </div>
             </section>
-          )}
+          ))}
 
-          {/* FILTRO DE PREÇO E BOTÃO LIMPAR (Mantidos conforme original) */}
-          <section>
-            <h4 className="font-black uppercase text-[13px] tracking-widest mb-4 border-b pb-2 text-zinc-800">Preço</h4>
+          <section aria-labelledby="filter-price">
+            <h4 id="filter-price" className="font-black uppercase text-[12px] tracking-widest mb-4 border-b-2 border-zinc-100 pb-2 text-zinc-800">Faixa de Preço</h4>
             <div className="flex items-center gap-2">
               <input
                 type="number"
-                placeholder="De"
-                className="w-full border border-zinc-200 rounded p-2 text-[11px] focus:outline-none focus:border-yellow-600 font-bold"
+                placeholder="Mín"
+                aria-label="Preço Mínimo"
+                className="w-full border-2 border-zinc-100 rounded-lg p-3 text-[11px] focus:border-yellow-500 outline-none font-bold italic transition-all"
                 value={filters.min_price}
                 onChange={(e) => onFilterChange({ min_price: e.target.value })}
               />
               <input
                 type="number"
-                placeholder="Até"
-                className="w-full border border-zinc-200 rounded p-2 text-[11px] focus:outline-none focus:border-yellow-600 font-bold"
+                placeholder="Máx"
+                aria-label="Preço Máximo"
+                className="w-full border-2 border-zinc-100 rounded-lg p-3 text-[11px] focus:border-yellow-500 outline-none font-bold italic transition-all"
                 value={filters.max_price}
                 onChange={(e) => onFilterChange({ max_price: e.target.value })}
               />
@@ -175,48 +190,25 @@ export default function ProductPageLayout({
           </section>
 
           <button
-            onClick={() => onFilterChange({ brand_id: '', size: '', min_price: '', max_price: '', color: '', sort: 'name_asc' })}
-            className="w-full py-3 bg-zinc-900 text-white text-[10px] font-black uppercase hover:bg-yellow-600 hover:text-black transition-all rounded tracking-widest"
+            onClick={() => {
+              onFilterChange({ brand_id: '', size: '', min_price: '', max_price: '', color: '', sort: 'name_asc' });
+              setIsMobileFiltersOpen(false);
+            }}
+            className="w-full py-4 bg-zinc-950 text-white text-[10px] font-black uppercase hover:bg-yellow-500 hover:text-black transition-all rounded-xl tracking-widest shadow-xl active:scale-95"
           >
-            Limpar Filtros
+            Resetar Filtros
           </button>
         </aside>
 
-        {/* ÁREA DE PRODUTOS */}
-        <div className="flex-1">
-          <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <nav className="text-[10px] font-bold text-zinc-400 uppercase flex gap-2 mb-2 italic">
-                <Link to="/" className="hover:text-yellow-600 transition-colors">Início</Link>
-                <span>/</span>
-                <span className="text-zinc-600">{title}</span>
-              </nav>
-              <h1 className="text-4xl font-black uppercase tracking-tighter text-zinc-900 italic leading-none">
-                {products.length > 0 ? products[0].category_name : title}
-              </h1>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <select
-                className="text-[11px] font-black uppercase bg-white border border-zinc-200 px-4 py-2.5 rounded-full outline-none focus:border-yellow-600 cursor-pointer italic"
-                value={filters.sort}
-                onChange={(e) => onFilterChange({ sort: e.target.value })}
-              >
-                <option value="name_asc">Organizar: A-Z</option>
-                <option value="price_asc">Menor Preço</option>
-                <option value="price_desc">Maior Preço</option>
-                <option value="newest">Novidades</option>
-              </select>
-            </div>
-          </header>
-
+        {/* VITRINE DE PRODUTOS */}
+        <section className="flex-1" aria-busy={isLoading}>
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-32 bg-zinc-50/50 rounded-3xl border border-dashed border-zinc-200">
-              <Loader2 className="w-10 h-10 animate-spin text-yellow-600" />
-              <span className="mt-4 font-black uppercase text-[10px] tracking-widest text-zinc-400">Atualizando vitrine...</span>
+            <div className="flex flex-col items-center justify-center py-40 bg-zinc-50/50 rounded-[3rem] border-2 border-dashed border-zinc-200 animate-pulse">
+              <Loader2 className="w-12 h-12 animate-spin text-yellow-600 mb-4" />
+              <span className="font-black uppercase text-[10px] tracking-widest text-zinc-400 italic">Curando as melhores peças...</span>
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 md:gap-x-8 md:gap-y-16">
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -224,75 +216,88 @@ export default function ProductPageLayout({
           )}
 
           {!isLoading && products.length === 0 && (
-            <div className="text-center py-32 border-2 border-dashed border-zinc-100 rounded-3xl bg-zinc-50/30">
-              <MessageSquare className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
-              <p className="font-black uppercase text-zinc-400 text-xs italic">Nenhum produto encontrado.</p>
+            <div className="text-center py-40 border-2 border-dashed border-zinc-100 rounded-[3rem] bg-zinc-50/30">
+              <MessageSquare className="w-16 h-16 text-zinc-200 mx-auto mb-6" />
+              <p className="font-black uppercase text-zinc-400 text-sm tracking-widest italic">Nenhuma raridade encontrada com esses filtros.</p>
             </div>
           )}
-        </div>
+        </section>
       </div>
     </main>
   );
 }
 
+/**
+ * CARD DE PRODUTO OTIMIZADO
+ */
 function ProductCard({ product }: { product: Product }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Exibe todas as variações únicas (Cor, Tamanho, Numeração) no hover do card
-  const allSpecs = product.variations
-    ? [...new Set(product.variations.map(v => v.value))]
-    : [];
+  const allSpecs = useMemo(() => 
+    product.variations ? [...new Set(product.variations.map(v => v.value))] : [],
+    [product.variations]
+  );
 
-  const handleOpenModal = (e: React.MouseEvent) => {
+  const handleOpenModal = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsModalOpen(true);
-  };
+  }, []);
 
   return (
-    <>
-      <div onClick={handleOpenModal} className="group flex flex-col bg-white overflow-hidden relative cursor-pointer">
-        <div className="relative aspect-[3/4] bg-zinc-100 overflow-hidden rounded-sm border border-zinc-100">
-          <div className="absolute top-2 right-2 flex flex-col gap-1 z-10 items-end">
-            {product.discount_percentage && (
-              <span className="bg-black text-white text-[9px] font-black px-2 py-1 uppercase italic tracking-widest">
-                {product.discount_percentage}% OFF
-              </span>
-            )}
-            {product.is_free_shipping && (
-              <span className="bg-yellow-500 text-black text-[9px] font-black px-2 py-1 uppercase italic flex items-center gap-1.5 shadow-xl">
-                FRETE GRÁTIS
-              </span>
-            )}
-          </div>
-
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-
-          <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-3 translate-y-full group-hover:translate-y-0 transition-all duration-300 hidden md:flex gap-1.5 justify-center flex-wrap border-t border-zinc-100">
-            {allSpecs.map(s => (
-              <span key={s} className="text-[9px] font-black border border-zinc-200 px-2 py-0.5 rounded bg-white text-zinc-800 uppercase">{s}</span>
-            ))}
-          </div>
+    <article 
+      onClick={handleOpenModal} 
+      className="group flex flex-col bg-transparent overflow-hidden relative cursor-pointer transition-all duration-300"
+    >
+      {/* IMAGEM COM ASPECTO FIXO (PREVINE CLS) */}
+      <div className="relative aspect-[3/4] bg-zinc-100 overflow-hidden rounded-2xl border border-zinc-50 shadow-sm">
+        <div className="absolute top-3 right-3 flex flex-col gap-2 z-10 items-end">
+          {product.discount_percentage && (
+            <span className="bg-zinc-950 text-white text-[9px] font-black px-2.5 py-1.5 uppercase italic tracking-widest shadow-2xl">
+              -{product.discount_percentage}%
+            </span>
+          )}
+          {product.is_free_shipping && (
+            <span className="bg-yellow-500 text-black text-[9px] font-black px-2.5 py-1.5 uppercase italic flex items-center gap-1.5 shadow-2xl">
+              <Truck size={10} /> FRETE GRÁTIS
+            </span>
+          )}
         </div>
 
-        <div className="py-4 space-y-1.5 leading-none">
-          <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-tighter italic block">
-            {product.brand_name || 'Premium'} • {product.category_name}
-          </span>
-          <h3 className="text-[11px] font-black uppercase text-zinc-800 line-clamp-2 h-8 leading-tight">
-            {product.name}
-          </h3>
+        <img
+          src={product.image_url}
+          alt={`Peça Premium ${product.name}`}
+          loading="lazy"
+          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+        />
 
-          <div className="flex flex-col">
-            {product.old_price && (
-              <span className="text-[10px] text-zinc-400 line-through font-bold">
-                R${Number(product.old_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </span>
-            )}
-            <span className="text-lg font-black text-zinc-900 italic">
+        {/* Hover Variations - Mobile amigável via pointer-events-none no desktop */}
+        <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden md:flex gap-2 justify-center flex-wrap border-t border-zinc-100">
+          {allSpecs.slice(0, 6).map(s => (
+            <span key={s} className="text-[8px] font-black border border-zinc-200 px-2 py-1 rounded bg-white text-zinc-800 uppercase shadow-sm">{s}</span>
+          ))}
+          {allSpecs.length > 6 && <span className="text-[8px] font-black text-zinc-400">+{allSpecs.length - 6}</span>}
+        </div>
+      </div>
+
+      <div className="py-5 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest italic">
+            {product.brand_name || 'Gold Store'} • {product.category_name}
+          </span>
+        </div>
+        
+        <h3 className="text-xs font-black uppercase text-zinc-900 line-clamp-2 leading-snug tracking-tight">
+          {product.name}
+        </h3>
+
+        <div className="flex flex-col gap-0.5 pt-1">
+          {product.old_price && (
+            <span className="text-[10px] text-zinc-400 line-through font-bold decoration-red-500/50">
+              R${Number(product.old_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </span>
+          )}
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-black text-zinc-950 italic tracking-tighter">
               R${Number(product.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
           </div>
@@ -306,6 +311,6 @@ function ProductCard({ product }: { product: Product }) {
           onClose={() => setIsModalOpen(false)}
         />
       )}
-    </>
+    </article>
   );
 }

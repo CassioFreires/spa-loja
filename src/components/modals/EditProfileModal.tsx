@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, Save, Lock, Loader2 } from "lucide-react";
-import { updateUser } from "../../services/Users/cadastre-se";
+import { updateUser } from "../../services/Users/users";
 
 interface ModalProps {
   isOpen: boolean;

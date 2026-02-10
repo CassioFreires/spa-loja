@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 
 import AnimatedBackground from "../../../components/style/AnimatedBackground";
 import { CadastreSeSchema } from '../../../schema/Cadastre-se/schema-cadastre-se';
-import { createUser } from '../../../services/Users/cadastre-se';
+import { createUser } from '../../../services/Users/users';
 
 
 type CadastreSeFormData = z.infer<typeof CadastreSeSchema>;

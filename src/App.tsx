@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 
-// Configurações Externas (Para manter o App.tsx limpo)
+// Configurações Externas
 import { queryClient } from "./services/queryClient";
 import { premiumToastOptions } from "./utils/toastConfig";
 
@@ -21,6 +21,9 @@ import TrackingPage from "./pages/private/shared/TrakingPage/TrakingPage";
 import SizeGuidePage from "./pages/public/SizeGuide/SizeGuide";
 import SecurityPolicy from "./pages/public/Security/Security";
 import ReturnsPolicy from "./pages/public/ReturnPolicy/ReturnPolicy";
+import GuestIdentification from "./pages/public/GuestIdentification/GuestIdentification";
+import OrderTracking from "./pages/public/OrderTracking/OrderTracking";
+import AllReviews from "./pages/public/AllReviews/AllReviews";
 
 // --- PÁGINAS DO CLIENTE (PRIVADAS) ---
 import CheckoutAddress from "./pages/private/shared/Address/Address";
@@ -35,17 +38,34 @@ import MyProducts from "./pages/private/admin/MyProducts/MyProducts";
 import AdminAddProduct from "./pages/private/admin/AddProduct/AddProduct";
 import AdminOrders from "./pages/private/admin/Orders/Orders";
 import AdminFeaturedProducts from "./pages/private/admin/FeaturedProducts/FeaturedProducts";
+import AdminComments from "./pages/private/admin/Comments/Comments";
+import AdminUsers from "./pages/private/admin/Users/Users";
+
+/**
+ * COMPONENTE DE DECISÃO HÍBRIDO
+ * Se houver token, renderiza o histórico completo.
+ * Se não houver, renderiza a tela de busca por código/email.
+ */
+const MyOrdersDecision = () => {
+  const isAuthenticated = !!localStorage.getItem('authToken');
+  
+  return isAuthenticated ? (
+    <PrivateRoute>
+      <MyOrders />
+    </PrivateRoute>
+  ) : (
+    <OrderTracking />
+  );
+};
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Notificações globais com estilo premium */}
       <Toaster position="top-center" toastOptions={premiumToastOptions} />
 
       <CartProvider>
         <MainLayout>
           <Routes>
-            
             {/* ==========================================
                 ROTAS PÚBLICAS
                ========================================== */}
@@ -54,43 +74,44 @@ function App() {
             <Route path="/cadastre-se" element={<RegisterPage />} />
             <Route path="/carrinho" element={<Cart />} />
             
-            {/* Categorias e Subcategorias */}
             <Route path="/categoria/:id" element={<CategoryPage isSubcategory={false} />} />
             <Route path="/categoria/sub/:subId" element={<CategoryPage isSubcategory={true} />} />
-            
+
+            {/* Fluxo de Checkout */}
+            <Route path="/identificacao" element={<GuestIdentification />} />
+            <Route path="/endereco" element={<CheckoutAddress />} />
+            <Route path="/pagamento" element={<PaymentSelection />} />
+            <Route path="/checkout/redirect" element={<PaymentRedirect />} />
+
             {/* Institucional */}
             <Route path="/guia-de-medidas" element={<SizeGuidePage />} />
             <Route path="/seguranca" element={<SecurityPolicy />} />
             <Route path="/trocas" element={<ReturnsPolicy />} />
             <Route path="/rastreamento-do-pedido" element={<TrackingPage />} />
+            <Route path="/avaliacoes" element={<AllReviews />} />
+
+            {/* ROTA UNIFICADA DE PEDIDOS (Lógica Híbrida) */}
+            <Route path="/meus-pedidos" element={<MyOrdersDecision />} />
 
             {/* ==========================================
                 ROTAS PRIVADAS (CLIENTE LOGADO)
                ========================================== */}
-            <Route path="/perfil" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-            <Route path="/meus-pedidos" element={<PrivateRoute><MyOrders /></PrivateRoute>} />
-            
-            {/* Fluxo de Checkout */}
-            <Route path="/endereco" element={<PrivateRoute><CheckoutAddress /></PrivateRoute>} />
-            <Route path="/pagamento" element={<PrivateRoute><PaymentSelection /></PrivateRoute>} />
-            <Route path="/checkout/redirect" element={<PrivateRoute><PaymentRedirect /></PrivateRoute>} />
+            <Route path="/perfil/configuracoes" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
 
             {/* ==========================================
                 ROTAS ADMINISTRATIVAS
                ========================================== */}
             <Route path="/admin/dashboard" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
-
             <Route path="/admin/produtos" element={<PrivateRoute><MyProducts /></PrivateRoute>} />
             <Route path="/admin/produto/adicionar" element={<PrivateRoute><AdminAddProduct /></PrivateRoute>} />
             <Route path="/admin/produto/desconto" element={<PrivateRoute><AdminFeaturedProducts /></PrivateRoute>} />
-
             <Route path="/admin/pedidos" element={<PrivateRoute><AdminOrders /></PrivateRoute>} />
+            <Route path="/admin/comentarios" element={<PrivateRoute><AdminComments /></PrivateRoute>} />
+            <Route path="/admin/usuarios" element={<PrivateRoute><AdminUsers /></PrivateRoute>} />
 
-            {/* ==========================================
-                FALLBACK (404 / REDIRECT)
-               ========================================== */}
+            {/* FALLBACK */}
             <Route path="*" element={<Navigate to="/" replace />} />
-            
+
           </Routes>
         </MainLayout>
       </CartProvider>
