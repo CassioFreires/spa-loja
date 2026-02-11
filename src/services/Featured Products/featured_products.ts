@@ -1,12 +1,4 @@
-import axios from "axios";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: { 'Content-Type': 'application/json' },
-});
-
+import axiosInstance from "../api";
 // Captura o token atualizado para cada chamada
 const getHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }

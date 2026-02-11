@@ -1,11 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
-
-const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: { 'Content-Type': 'application/json' },
-});
+import axiosInstance from '../api';
 
 export const getProducts = async (
     targetId?: string | number,
@@ -56,7 +49,6 @@ export const getVariantOptions = async () => {
 };
 
 export const createProduct = async (data: FormData) => {
-    console.log(data)
     const response = await axiosInstance.post('/products', data, {
         headers: {
             'Content-Type': 'multipart/form-data',
@@ -101,5 +93,3 @@ export const getFootwear = async (): Promise<any[]> => {
         throw error;
     }
 };
-
-export default axiosInstance;

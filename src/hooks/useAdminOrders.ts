@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '../services/Products/products';
+import axiosInstance from '../services/api';
 
 export function useAdminOrders() {
   return useQuery({

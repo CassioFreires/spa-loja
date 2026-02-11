@@ -1,6 +1,6 @@
 // hooks/useShipmentMutation.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axiosInstance from '../services/Products/products';
+import axiosInstance from '../services/api';
 import toast from 'react-hot-toast';
 
 export function useAddTrackingEvent(onSuccessCallback: () => void) {

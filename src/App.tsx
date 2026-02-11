@@ -43,14 +43,13 @@ import AdminUsers from "./pages/private/admin/Users/Users";
 
 /**
  * COMPONENTE DE DECISÃO HÍBRIDO
- * Se houver token, renderiza o histórico completo.
- * Se não houver, renderiza a tela de busca por código/email.
+ * Lógica: Se logado, PrivateRoute garante o acesso à lista completa. 
+ * Se deslogado, cai no rastreio manual por código.
  */
 const MyOrdersDecision = () => {
   const isAuthenticated = !!localStorage.getItem('authToken');
-  
   return isAuthenticated ? (
-    <PrivateRoute>
+    <PrivateRoute requiredRole={["ADMIN", "SUPORTE", "CLIENTE"]}>
       <MyOrders />
     </PrivateRoute>
   ) : (
@@ -62,22 +61,22 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster position="top-center" toastOptions={premiumToastOptions} />
-
       <CartProvider>
         <MainLayout>
           <Routes>
             {/* ==========================================
-                ROTAS PÚBLICAS
-               ========================================== */}
+                1. ROTAS PÚBLICAS 
+                Acessíveis por qualquer visitante.
+                ========================================== 
+            */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/cadastre-se" element={<RegisterPage />} />
             <Route path="/carrinho" element={<Cart />} />
-            
             <Route path="/categoria/:id" element={<CategoryPage isSubcategory={false} />} />
             <Route path="/categoria/sub/:subId" element={<CategoryPage isSubcategory={true} />} />
 
-            {/* Fluxo de Checkout */}
+            {/* Fluxo de Checkout (Híbrido/Público) */}
             <Route path="/identificacao" element={<GuestIdentification />} />
             <Route path="/endereco" element={<CheckoutAddress />} />
             <Route path="/pagamento" element={<PaymentSelection />} />
@@ -90,26 +89,59 @@ function App() {
             <Route path="/rastreamento-do-pedido" element={<TrackingPage />} />
             <Route path="/avaliacoes" element={<AllReviews />} />
 
-            {/* ROTA UNIFICADA DE PEDIDOS (Lógica Híbrida) */}
+            {/* Decisão de Pedidos (Logado vs Visitante) */}
             <Route path="/meus-pedidos" element={<MyOrdersDecision />} />
 
             {/* ==========================================
-                ROTAS PRIVADAS (CLIENTE LOGADO)
-               ========================================== */}
-            <Route path="/perfil/configuracoes" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+                2. ROTAS PRIVADAS (CLIENTE / COMPRADOR)
+                Requer login básico.
+                ========================================== 
+            */}
+            <Route
+              path="/perfil/configuracoes"
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE", "CLIENTE"]}><ProfilePage /></PrivateRoute>}/>
 
             {/* ==========================================
-                ROTAS ADMINISTRATIVAS
-               ========================================== */}
-            <Route path="/admin/dashboard" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
-            <Route path="/admin/produtos" element={<PrivateRoute><MyProducts /></PrivateRoute>} />
-            <Route path="/admin/produto/adicionar" element={<PrivateRoute><AdminAddProduct /></PrivateRoute>} />
-            <Route path="/admin/produto/desconto" element={<PrivateRoute><AdminFeaturedProducts /></PrivateRoute>} />
-            <Route path="/admin/pedidos" element={<PrivateRoute><AdminOrders /></PrivateRoute>} />
-            <Route path="/admin/comentarios" element={<PrivateRoute><AdminComments /></PrivateRoute>} />
-            <Route path="/admin/usuarios" element={<PrivateRoute><AdminUsers /></PrivateRoute>} />
+                3. ROTAS ADMINISTRATIVAS (GESTÃO)
+                Nível: Admin e Suporte
+                ========================================== 
+            */}
+            <Route 
+              path="/admin/dashboard" 
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminDashboard /></PrivateRoute>} 
+            />
+            <Route 
+              path="/admin/produtos" 
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><MyProducts /></PrivateRoute>} 
+            />
+            <Route 
+              path="/admin/produto/adicionar" 
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminAddProduct /></PrivateRoute>} 
+            />
+            <Route 
+              path="/admin/produto/desconto" 
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminFeaturedProducts /></PrivateRoute>} 
+            />
+            <Route 
+              path="/admin/pedidos" 
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminOrders /></PrivateRoute>} 
+            />
+            <Route 
+              path="/admin/comentarios" 
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminComments /></PrivateRoute>} 
+            />
 
-            {/* FALLBACK */}
+            {/* ==========================================
+                4. ROTAS CRÍTICAS (APENAS ADMIN)
+                Nível: Apenas Administradores (Gestão de Staff/Usuários)
+                ========================================== 
+            */}
+            <Route 
+              path="/admin/usuarios" 
+              element={<PrivateRoute requiredRole="ADMIN"><AdminUsers /></PrivateRoute>} 
+            />
+
+            {/* FALLBACK: Redireciona rotas inexistentes para a Home */}
             <Route path="*" element={<Navigate to="/" replace />} />
 
           </Routes>

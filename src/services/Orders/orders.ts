@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import axiosInstance from "../api";
 
 /**
  * INTERFACES DE PAYLOAD
@@ -27,12 +25,6 @@ export interface ShippingResponse {
     price: number;
     eta: number;
 }
-
-// Configuração da Instância do Axios
-const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: { 'Content-Type': 'application/json' },
-});
 
 /**
  * INTERCEPTOR DE AUTENTICAÇÃO

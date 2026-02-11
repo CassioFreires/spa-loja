@@ -1,8 +1,5 @@
 import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
-
-// --- Interfaces ---
+import axiosInstance from '../api';
 
 export interface Subcategory {
   id: number;
@@ -18,15 +15,6 @@ export interface Category {
   description?: string;
   subcategories?: Subcategory[]; // Para quando buscamos a árvore completa
 }
-
-// --- Configuração da Instância ---
-
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 
 // --- Métodos do Serviço ---

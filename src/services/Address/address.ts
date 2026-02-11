@@ -1,12 +1,5 @@
-import axios from "axios";
 import type { Address } from "../../components/modals/AddressModal";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
-
-const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: { 'Content-Type': 'application/json' },
-});
+import axiosInstance from "../api";
 
 export const getMyAddresses = async (token: string) => {
     const response = await axiosInstance.get('/address/my-addresses', { // Rota ajustada para o seu @Get() padrão ou findByUserId

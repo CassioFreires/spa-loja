@@ -1,8 +1,6 @@
-import axios from 'axios';
 import { CadastreSeSchema } from '../../schema/Cadastre-se/schema-cadastre-se';
 import { z } from 'zod';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
+import axiosInstance from '../api';
 
 type CadastreSeData = z.infer<typeof CadastreSeSchema>;
 
@@ -27,12 +25,6 @@ export interface AuthResponse {
   message?: string;
 }
 
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 // Helper para obter headers com token atualizado
 const getHeaders = () => ({

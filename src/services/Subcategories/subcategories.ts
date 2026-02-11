@@ -1,42 +1,43 @@
-import axios from 'axios';
-
+import axios from 'axios'; // Import necessário para o axios.isAxiosError
+import axiosInstance from "../api";
 
 export interface Subcategory {
   id: number;
   name: string;
   description?: string;
   category_id: number;
-  parent_id?: number | null; // Suporte para o nível de "Marcas"
+  parent_id?: number | null;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
-
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-
 /**
- * Obtém todas as subcategorias (findAll)
+ * Obtém todas as subcategorias
  */
 export const getSubcategories = async (): Promise<Subcategory[]> => {
   try {
     const response = await axiosInstance.get<Subcategory[]>('/subcategories');
     return response.data;
   } catch (error) {
+    // Agora o helper recebe o erro tratado
     throw handleApiError(error, 'Erro ao carregar subcategorias');
   }
 };
 
 /* =========================
-   Helper de Erro
+    Helper de Erro (Robusto)
 ========================= */
 const handleApiError = (error: unknown, fallbackMessage: string) => {
   if (axios.isAxiosError(error)) {
-    return new Error(error.response?.data?.message || fallbackMessage);
+    // Tenta pegar a mensagem do NestJS (error.response.data.message)
+    // Se for um erro de rede ou servidor fora do ar, usa o fallback
+    const apiMessage = error.response?.data?.message;
+    
+    // Se a mensagem for um array (comum em validações de DTO do NestJS), faz o join
+    const finalMessage = Array.isArray(apiMessage) 
+      ? apiMessage.join(', ') 
+      : apiMessage;
+
+    return new Error(finalMessage || fallbackMessage);
   }
+  
   return new Error(fallbackMessage);
 };

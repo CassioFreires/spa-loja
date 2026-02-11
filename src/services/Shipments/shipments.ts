@@ -1,14 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
-
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
+import axiosInstance from "../api";
 // Helper para pegar o token (evita repetição)
 const getAuthHeader = () => {
   const token = localStorage.getItem('authToken');
@@ -68,5 +58,3 @@ export const updateShipmentStatus = async (shipmentId: number, status: string) =
   });
   return response.data;
 };
-
-export default axiosInstance;

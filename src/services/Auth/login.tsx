@@ -1,7 +1,7 @@
-import axios from 'axios';
+import type{ InternalAxiosRequestConfig } from 'axios';
+import axiosInstance from '../api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
-
+// --- INTERFACES ---
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -13,77 +13,66 @@ export interface AuthResponse {
     id: string;
     email: string;
     name: string;
+    role: string; // Adicionado para bater com seu backend
   };
 }
 
-// Criar instância do axios com configurações padrão
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// --- INSTÂNCIA ---
 
-/**
- * Autentica o usuário com o backend
- * @param credentials - Email e senha do usuário
- * @returns Promise com o token e dados do usuário
- */
+
+// --- INTERCEPTORS (A Mágica da Segurança) ---
+
+// Injeta o token em cada requisição antes dela sair
+axiosInstance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = localStorage.getItem('authToken');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Trata erros globais (Ex: se o token expirar na VPS, desloga na hora)
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token inválido ou expirado
+      localStorage.removeItem('authToken');
+      window.location.href = '/login'; // Redireciona para login
+    }
+    return Promise.reject(error);
+  }
+);
+
+// --- FUNÇÕES DE AÇÃO ---
+
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   try {
-    const response = await axiosInstance.post<AuthResponse>('/auth/login', {
-      email: credentials.email,
-      password: credentials.password,
-    });
+    const response = await axiosInstance.post<AuthResponse>('/auth/login', credentials);
 
-    console.log('Login bem-sucedido:', response.data);
-    // Armazenar token no localStorage
     if (response.data.access_token) {
       localStorage.setItem('authToken', response.data.access_token);
-      // Adicionar token aos headers padrão para requisições futuras
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
+      // Não precisamos setar o default header aqui, o interceptor cuidará disso!
     }
 
     return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || 'Erro ao fazer login');
-    }
-    throw error;
+  } catch (error: any) {
+    const message = error.response?.data?.message || 'Erro ao fazer login';
+    throw new Error(message);
   }
 };
 
-/**
- * Faz logout do usuário
- */
 export const logout = (): void => {
   localStorage.removeItem('authToken');
-  delete axiosInstance.defaults.headers.common['Authorization'];
+  // Opcional: Redirecionar para home
+  window.location.href = '/';
 };
 
-/**
- * Obtém o token armazenado
- */
-export const getToken = (): string | null => {
-  return localStorage.getItem('authToken');
-};
+export const getToken = (): string | null => localStorage.getItem('authToken');
 
-/**
- * Valida se o usuário está autenticado
- */
-export const isAuthenticated = (): boolean => {
-  const token = getToken();
-  return !!token;
-};
-
-/**
- * Inicializa o token no axios se existir
- */
-export const initializeAuthToken = (): void => {
-  const token = getToken();
-  if (token) {
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  }
-};
+export const isAuthenticated = (): boolean => !!getToken();
 
 export default axiosInstance;
