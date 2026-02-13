@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Save, Layers, Loader2 } from 'lucide-react';
 import { useEditProduct } from '../../hooks/useEditProduct';
 
