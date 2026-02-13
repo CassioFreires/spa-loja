@@ -3,6 +3,7 @@ import Header from "../Header/Header";
 import SideBar from "../../SideBar/SideBar";
 import { useAuth } from "../../../context/AuthContext";
 import Footer from "../Footer/Footer";
+import WhatsAppButton from "../../WhatsappButton/WhatsappButton";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
@@ -27,6 +28,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </main>
       </div>
       <Footer />
+
+      <WhatsAppButton />
     </div>
   );
 }
