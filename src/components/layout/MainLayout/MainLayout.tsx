@@ -16,13 +16,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       <div className="flex flex-1 flex-row relative overflow-hidden">
         {hasSidebar && (
-          <SideBar 
-            isOpen={isAdminMenuOpen} 
-            onClose={() => setIsAdminMenuOpen(false)} 
+          <SideBar
+            isOpen={isAdminMenuOpen}
+            onClose={() => setIsAdminMenuOpen(false)}
           />
         )}
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full transition-all duration-300">
+        <main className="flex-1 relative overflow-y-auto p-0 md:p-0 w-full transition-all duration-300">
           {children}
         </main>
       </div>

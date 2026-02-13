@@ -7,7 +7,7 @@ import NavBar from '../../NavBar/NavBar';
 import ProfileDropdown from '../../ProfileDropdown/ProfileDropdown'; // Importe o componente que refatoramos
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
-
+import CanvasEffect from '../../style/Background';
 interface HeaderProps {
   onToggleAdminMenu?: () => void;
 }
@@ -40,10 +40,14 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
 
   return (
     <header
-      className={`w-full sticky top-0 z-[100] transition-all duration-300 ${isScrolled ? 'bg-black/90 backdrop-blur-md shadow-2xl' : 'bg-black'
-        }`}
+      className={`w-full sticky top-0 z-[100] transition-all duration-300 overflow-hidden ${
+        isScrolled ? 'bg-black/90 backdrop-blur-md' : 'bg-black'
+      }`}
       role="banner"
     >
+
+
+
       {/* --- TOP BAR (TRUST & INFO) --- */}
       <div className="hidden md:flex w-full bg-zinc-900/50 border-b border-white/5 py-2">
         <div className="max-w-[1440px] mx-auto px-8 flex justify-between items-center w-full">
@@ -130,8 +134,8 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
                   <button
                     onClick={() => setIsProfileOpen((prev) => !prev)}
                     className={`p-2.5 rounded-2xl transition-all duration-300 shadow-xl border ${isProfileOpen
-                        ? 'bg-yellow-500 text-black border-yellow-500'
-                        : 'bg-white/5 text-yellow-500 border-white/10 hover:border-yellow-500/50'
+                      ? 'bg-yellow-500 text-black border-yellow-500'
+                      : 'bg-white/5 text-yellow-500 border-white/10 hover:border-yellow-500/50'
                       }`}
                   >
                     <User className="w-6 h-6 md:w-7 md:h-7 stroke-[2]" />
@@ -185,7 +189,7 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
         </div>
       </div>
 
-      
+
 
       {/* Structured Data para IA (JSON-LD) */}
       <script type="application/ld+json">

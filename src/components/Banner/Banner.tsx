@@ -1,4 +1,5 @@
 import { ShoppingBag, ChevronRight } from 'lucide-react';
+import CanvasEffect from '../style/Background';
 
 export default function Banner() {
   return (
@@ -21,6 +22,7 @@ export default function Banner() {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent md:bg-gradient-to-r md:from-black md:via-black/60 md:to-transparent z-10" />
         <div className="absolute inset-0 bg-black/10 backdrop-blur-[0.5px] z-20" />
       </div>
+    <CanvasEffect />
 
       {/* --- CONTENT LAYER --- */}
       <div className="relative z-30 max-w-[1440px] mx-auto w-full px-6 md:px-12 lg:px-20 text-white">
