@@ -40,6 +40,7 @@ import AdminOrders from "./pages/private/admin/Orders/Orders";
 import AdminFeaturedProducts from "./pages/private/admin/FeaturedProducts/FeaturedProducts";
 import AdminComments from "./pages/private/admin/Comments/Comments";
 import AdminUsers from "./pages/private/admin/Users/Users";
+import WelcomeModal from "./components/modals/Welcome";
 
 /**
  * COMPONENTE DE DECISÃO HÍBRIDO
@@ -62,6 +63,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Toaster position="top-center" toastOptions={premiumToastOptions} />
       <CartProvider>
+        <WelcomeModal />
         <MainLayout>
           <Routes>
             {/* ==========================================
@@ -99,36 +101,36 @@ function App() {
             */}
             <Route
               path="/perfil/configuracoes"
-              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE", "CLIENTE"]}><ProfilePage /></PrivateRoute>}/>
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE", "CLIENTE"]}><ProfilePage /></PrivateRoute>} />
 
             {/* ==========================================
                 3. ROTAS ADMINISTRATIVAS (GESTÃO)
                 Nível: Admin e Suporte
                 ========================================== 
             */}
-            <Route 
-              path="/admin/dashboard" 
-              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminDashboard /></PrivateRoute>} 
+            <Route
+              path="/admin/dashboard"
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminDashboard /></PrivateRoute>}
             />
-            <Route 
-              path="/admin/produtos" 
-              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><MyProducts /></PrivateRoute>} 
+            <Route
+              path="/admin/produtos"
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><MyProducts /></PrivateRoute>}
             />
-            <Route 
-              path="/admin/produto/adicionar" 
-              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminAddProduct /></PrivateRoute>} 
+            <Route
+              path="/admin/produto/adicionar"
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminAddProduct /></PrivateRoute>}
             />
-            <Route 
-              path="/admin/produto/desconto" 
-              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminFeaturedProducts /></PrivateRoute>} 
+            <Route
+              path="/admin/produto/desconto"
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminFeaturedProducts /></PrivateRoute>}
             />
-            <Route 
-              path="/admin/pedidos" 
-              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminOrders /></PrivateRoute>} 
+            <Route
+              path="/admin/pedidos"
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminOrders /></PrivateRoute>}
             />
-            <Route 
-              path="/admin/comentarios" 
-              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminComments /></PrivateRoute>} 
+            <Route
+              path="/admin/comentarios"
+              element={<PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}><AdminComments /></PrivateRoute>}
             />
 
             {/* ==========================================
@@ -136,9 +138,9 @@ function App() {
                 Nível: Apenas Administradores (Gestão de Staff/Usuários)
                 ========================================== 
             */}
-            <Route 
-              path="/admin/usuarios" 
-              element={<PrivateRoute requiredRole="ADMIN"><AdminUsers /></PrivateRoute>} 
+            <Route
+              path="/admin/usuarios"
+              element={<PrivateRoute requiredRole="ADMIN"><AdminUsers /></PrivateRoute>}
             />
 
             {/* FALLBACK: Redireciona rotas inexistentes para a Home */}
