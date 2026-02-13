@@ -19,7 +19,7 @@ interface ProductModalProps {
 export default function ProductDetailModal({ product, isOpen, onClose }: ProductModalProps) {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
-  const [selectedNum, setSelectedNum] = useState<string>(""); 
+  const [selectedNum, setSelectedNum] = useState<string>("");
   const [isAdding, setIsAdding] = useState(false);
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -45,12 +45,12 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
 
   // REFATORADO: Busca o objeto da variação para passar ao Contexto
   const getSelectedVariation = () => {
-    const variation = product.variations?.find(v => 
+    const variation = product.variations?.find(v =>
       (sizes.length > 0 ? v.value === selectedSize : true) &&
       (colors.length > 0 ? v.value === selectedColor : true) &&
       (numbers.length > 0 ? v.value === selectedNum : true)
     );
-    
+
     if (!variation) return null;
 
     return {
@@ -70,7 +70,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
     if (isBuyNow) {
       addToCart(product, variation);
       onClose();
-      
+
       // LÓGICA DE REDIRECIONAMENTO REFATORADA
       const token = localStorage.getItem('authToken');
       if (token) {
@@ -84,23 +84,26 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
       addToCart(product, variation);
       setTimeout(() => {
         setIsAdding(false);
-        onClose(); 
+        onClose();
       }, 500);
     }
   };
 
   return createPortal(
-    <div 
+    <div
       className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300"
       role="dialog"
       aria-modal="true"
     >
       <div className="bg-white w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden rounded-t-[2rem] md:rounded-[2rem] shadow-2xl relative flex flex-col md:flex-row border border-zinc-200/50">
-        
+
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           aria-label="Fechar modal"
-          className="absolute top-4 right-4 z-50 bg-white/80 backdrop-blur-md p-2.5 rounded-full hover:bg-black hover:text-white transition-all shadow-lg active:scale-90 text-zinc-500"
+          className="absolute top-4 right-4 z-[100] bg-white/80 backdrop-blur-md p-2.5 rounded-full hover:bg-black hover:text-white transition-all shadow-lg active:scale-90 text-zinc-500"
         >
           <X size={20} />
         </button>
@@ -158,11 +161,10 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
                       <button
                         key={color}
                         onClick={() => setSelectedColor(color)}
-                        className={`px-4 py-2.5 text-[10px] font-black uppercase border transition-all rounded-xl ${
-                          selectedColor === color 
-                          ? 'border-zinc-900 bg-zinc-900 text-white shadow-xl scale-105' 
-                          : 'border-zinc-200 text-zinc-500 hover:border-zinc-400 hover:bg-zinc-50'
-                        }`}
+                        className={`px-4 py-2.5 text-[10px] font-black uppercase border transition-all rounded-xl ${selectedColor === color
+                            ? 'border-zinc-900 bg-zinc-900 text-white shadow-xl scale-105'
+                            : 'border-zinc-200 text-zinc-500 hover:border-zinc-400 hover:bg-zinc-50'
+                          }`}
                       >
                         {color}
                       </button>
@@ -181,11 +183,10 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
                       <button
                         key={val}
                         onClick={() => sizes.length > 0 ? setSelectedSize(val) : setSelectedNum(val)}
-                        className={`aspect-square text-[12px] font-black border transition-all flex items-center justify-center rounded-xl ${
-                          (selectedSize === val || selectedNum === val) 
-                          ? 'border-yellow-500 bg-yellow-500 text-zinc-950 shadow-lg shadow-yellow-500/20 scale-105' 
-                          : 'border-zinc-200 text-zinc-400 hover:border-zinc-900 hover:text-zinc-900'
-                        }`}
+                        className={`aspect-square text-[12px] font-black border transition-all flex items-center justify-center rounded-xl ${(selectedSize === val || selectedNum === val)
+                            ? 'border-yellow-500 bg-yellow-500 text-zinc-950 shadow-lg shadow-yellow-500/20 scale-105'
+                            : 'border-zinc-200 text-zinc-400 hover:border-zinc-900 hover:text-zinc-900'
+                          }`}
                       >
                         {val}
                       </button>
@@ -197,7 +198,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
           </div>
 
           <div className="pt-4 mt-auto border-t border-zinc-100 space-y-3 bg-white">
-            <button 
+            <button
               type="button"
               onClick={() => handleAction(true)}
               className="w-full bg-zinc-950 text-white py-4 md:py-5 rounded-2xl font-black uppercase tracking-[0.1em] text-[11px] hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-[0.98] shadow-2xl shadow-zinc-900/20"
@@ -216,19 +217,19 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
             </button>
 
             <div className="flex justify-center gap-6 pt-4 border-t border-zinc-50 mt-4">
-               <div className="flex items-center gap-2 text-zinc-400">
-                  <Truck size={14} className="text-yellow-600" />
-                  <span className="text-[9px] font-black uppercase tracking-tighter">Entrega Expressa</span>
-               </div>
-               <div className="flex items-center gap-2 text-zinc-400">
-                  <ShieldCheck size={14} className="text-yellow-600" />
-                  <span className="text-[9px] font-black uppercase tracking-tighter">Garantia Total</span>
-               </div>
+              <div className="flex items-center gap-2 text-zinc-400">
+                <Truck size={14} className="text-yellow-600" />
+                <span className="text-[9px] font-black uppercase tracking-tighter">Entrega Expressa</span>
+              </div>
+              <div className="flex items-center gap-2 text-zinc-400">
+                <ShieldCheck size={14} className="text-yellow-600" />
+                <span className="text-[9px] font-black uppercase tracking-tighter">Garantia Total</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
