@@ -7,7 +7,6 @@ import NavBar from '../../NavBar/NavBar';
 import ProfileDropdown from '../../ProfileDropdown/ProfileDropdown';
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
-import CanvasEffect from '../../style/Background';
 
 interface HeaderProps {
   onToggleAdminMenu?: () => void;
@@ -40,11 +39,6 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
       }`}
       role="banner"
     >
-      {/* 1. LAYER DE FUNDO: O Canvas fica aqui, isolado */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <CanvasEffect />
-      </div>
-
       {/* 2. LAYER DE CONTEÚDO: Relative z-10 para ficar acima do Canvas e SEM overflow-hidden */}
       <div className="relative z-10 w-full">
         
@@ -80,7 +74,7 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
             >
               <div className="relative h-10 md:h-16 lg:h-20 w-auto aspect-[3/1] flex items-center">
                 <img
-                  src="assets/images/logo.png"
+                  src="../assets/images/logo.png"
                   alt="Logo Gold Store Multimarcas"
                   className="h-full w-full object-contain"
                   loading="eager"
