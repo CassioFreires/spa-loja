@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Edit3, Trash2, Plus, Loader2, Filter, Layers } from 'lucide-react';
 import { useAdminProducts } from '../../../../hooks/useAdminProducts';
-
+// Importação do Modal de Edição (Certifique-se do caminho correto)
+import EditProductModal from '../../../../components/modals/EditProductModalProps';
 interface Product {
   id: string | number;
   name: string;
@@ -20,12 +21,22 @@ export default function MyProducts() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page] = useState(1);
 
+  // --- ESTADOS PARA O MODAL DE EDIÇÃO ---
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedSearch(searchTerm), 500);
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
   const { products, isLoading } = useAdminProducts(page, debouncedSearch);
+
+  // Função para abrir o modal com o produto correto
+  const handleEditClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
+  };
 
   return (
     <main className="max-w-7xl mx-auto space-y-8 p-6 animate-in fade-in duration-500">
@@ -80,19 +91,36 @@ export default function MyProducts() {
               </thead>
               <tbody className="divide-y divide-zinc-50">
                 {products.map((product: Product) => (
-                  <ProductRow key={product.id} product={product} />
+                  <ProductRow 
+                    key={product.id} 
+                    product={product} 
+                    onEdit={() => handleEditClick(product)} // Passando a função de editar
+                  />
                 ))}
               </tbody>
             </table>
           )}
         </div>
       </section>
+
+      {/* MODAL DE EDIÇÃO INTEGRADO */}
+      {selectedProduct && (
+        <EditProductModal 
+          product={selectedProduct}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedProduct(null);
+          }}
+        />
+      )}
     </main>
   );
 }
 
-const ProductRow = ({ product }: { product: Product }) => {
-  // Resumo das variações por tipo (ex: Cor: Azul, Vermelho)
+// --- SUBCOMPONENTE PRODUCT ROW COM GATILHO DE EDIÇÃO ---
+
+const ProductRow = ({ product, onEdit }: { product: Product, onEdit: () => void }) => {
   const variationSummary = useMemo(() => {
     if (!product.variations) return null;
     return product.variations.reduce((acc: any, v: any) => {
@@ -157,8 +185,15 @@ const ProductRow = ({ product }: { product: Product }) => {
       </td>
       <td className="px-8 py-6 text-right">
         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
-          <button className="p-3 bg-white border border-zinc-200 text-zinc-400 hover:border-zinc-900 hover:text-zinc-900 rounded-xl transition-all shadow-sm"><Edit3 size={16} /></button>
-          <button className="p-3 bg-white border border-zinc-200 text-zinc-400 hover:bg-red-500 hover:border-red-500 hover:text-white rounded-xl transition-all shadow-sm"><Trash2 size={16} /></button>
+          <button 
+            onClick={onEdit} // DISPARA A EDIÇÃO
+            className="p-3 bg-white border border-zinc-200 text-zinc-400 hover:border-zinc-900 hover:text-zinc-900 rounded-xl transition-all shadow-sm"
+          >
+            <Edit3 size={16} />
+          </button>
+          <button className="p-3 bg-white border border-zinc-200 text-zinc-400 hover:bg-red-500 hover:border-red-500 hover:text-white rounded-xl transition-all shadow-sm">
+            <Trash2 size={16} />
+          </button>
         </div>
       </td>
     </tr>
