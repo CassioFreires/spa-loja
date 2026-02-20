@@ -83,7 +83,7 @@ export default function Promotions() {
                       ...item,
                       id: item.product_id,
                       price: item.sale_price,
-                      old_price: item.original_price,
+                      old_price: item.price,
                       image_url: item.image_1
                     }}
                     isOffer={true}

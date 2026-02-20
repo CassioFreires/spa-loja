@@ -41,6 +41,7 @@ import AdminFeaturedProducts from "./pages/private/admin/FeaturedProducts/Featur
 import AdminComments from "./pages/private/admin/Comments/Comments";
 import AdminUsers from "./pages/private/admin/Users/Users";
 import WelcomeModal from "./components/modals/Welcome";
+import TeamsPage from "./pages/public/TeamsPage/TeamsPage";
 
 /**
  * COMPONENTE DE DECISÃO HÍBRIDO
@@ -77,6 +78,9 @@ function App() {
             <Route path="/carrinho" element={<Cart />} />
             <Route path="/categoria/:id" element={<CategoryPage isSubcategory={false} />} />
             <Route path="/categoria/sub/:subId" element={<CategoryPage isSubcategory={true} />} />
+
+            {/* Fluxo de camisas de time */}
+            <Route path="/mantos" element={<TeamsPage/>} />
 
             {/* Fluxo de Checkout (Híbrido/Público) */}
             <Route path="/identificacao" element={<GuestIdentification />} />

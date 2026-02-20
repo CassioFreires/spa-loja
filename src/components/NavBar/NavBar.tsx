@@ -111,6 +111,14 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
     staleTime: Infinity,
   });
 
+  /* LÓGICA DE FILTRO: 
+    Removemos "Camisas de Time" da lista de Categorias do Dropdown, 
+    já que ela possui um link fixo exclusivo na barra de navegação.
+  */
+  const filteredCategories = categories.filter(
+    (cat) => cat.name.toLowerCase() !== 'camisas de time'
+  );
+
   return (
     <>
       {/* DESKTOP */}
@@ -123,10 +131,11 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
               </Link>
             </li>
 
-            <DropdownCategories categories={categories} isLoading={isLoading} />
+            {/* Dropdown com as categorias filtradas */}
+            <DropdownCategories categories={filteredCategories} isLoading={isLoading} />
 
             <li>
-              <Link to="/camisas-de-time" className="text-[12px] font-black uppercase tracking-widest hover:text-yellow-600 transition-colors">
+              <Link to="/mantos" className="text-[12px] font-black uppercase tracking-widest hover:text-yellow-600 transition-colors">
                 Camisas de Time
               </Link>
             </li>
@@ -136,14 +145,12 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
               items={SUPORTE_LINKS.map(l => ({ label: l.name, to: l.path, icon: l.icon }))}
             />
 
-            {/* LINK MEUS PEDIDOS: Sempre visível para usuários logados ou visitantes */}
             <li>
               <Link to="/meus-pedidos" className="flex items-center gap-2 text-[12px] font-black text-zinc-900 uppercase tracking-widest hover:text-yellow-600 transition-all italic border-l pl-8 border-zinc-200 ml-2">
                 <Package className="w-4 h-4 text-yellow-600" /> Meus Pedidos
               </Link>
             </li>
 
-            {/* PAINEL ADMIN */}
             {isAuthenticated && hasAdminAccess && (
               <li>
                 <button onClick={onToggleAdminMenu} className="flex items-center gap-2 text-[12px] font-black text-yellow-600 uppercase tracking-widest hover:opacity-80 transition-all">
@@ -166,7 +173,6 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
 
           <div className="overflow-y-auto h-[calc(100%-80px)]">
             
-            {/* LINK MEUS PEDIDOS MOBILE: No topo para fácil acesso de visitantes */}
             <Link
               to="/meus-pedidos"
               onClick={onClose}
@@ -176,7 +182,8 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
             </Link>
 
             <MobileAccordion title="Categorias" open={isCategoriesOpen} toggle={() => setIsCategoriesOpen(!isCategoriesOpen)}>
-              {categories.map((cat) => (
+              {/* Também usamos as categorias filtradas no Mobile para evitar duplicidade com o link direto abaixo */}
+              {filteredCategories.map((cat) => (
                 <div key={cat.id}>
                   <Link to={`/categoria/${cat.id}`} onClick={onClose} className="block p-4 pl-8 text-[11px] font-bold uppercase bg-zinc-50">{cat.name}</Link>
                   {cat.subcategories?.map((sub) => (
@@ -184,6 +191,8 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
                   ))}
                 </div>
               ))}
+              {/* Link direto para Mantos no mobile dentro ou fora do accordion conforme sua preferência */}
+              <Link to="/mantos" onClick={onClose} className="block p-4 pl-8 text-[11px] font-bold uppercase text-yellow-600 bg-zinc-50">Camisas de Time (Mantos)</Link>
             </MobileAccordion>
 
             <div className="py-4">
@@ -194,7 +203,6 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
               ))}
             </div>
 
-            {/* PAINEL ADMIN MOBILE */}
             {isAuthenticated && hasAdminAccess && (
               <button
                 onClick={() => { onClose(); onToggleAdminMenu?.(); }}

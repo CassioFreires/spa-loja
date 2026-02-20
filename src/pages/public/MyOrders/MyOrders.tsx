@@ -32,6 +32,7 @@ export default function MyOrders() {
         gcTime: 1000 * 60 * 5, // Mantém no lixo por 5 min
     });
 
+
     // Invalidação forçada ao montar o componente para garantir dados frescos
     useEffect(() => {
         queryClient.invalidateQueries({ queryKey: ['my-orders'] });
@@ -47,6 +48,7 @@ export default function MyOrders() {
             toast.error(err.response?.data?.message || "Erro ao cancelar.", { id: 'cancel-order' });
         }
     });
+
 
     if (isLoading) return (
         <div className="min-h-screen flex items-center justify-center bg-[#F8F9FB]">

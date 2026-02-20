@@ -74,7 +74,7 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
             >
               <div className="relative h-10 md:h-16 lg:h-20 w-auto aspect-[3/1] flex items-center">
                 <img
-                  src="../assets/images/logo.png"
+                  src="assets/images/logo.png"
                   alt="Logo Gold Store Multimarcas"
                   className="h-full w-full object-contain"
                   loading="eager"

@@ -29,7 +29,7 @@ const INITIAL_FILTERS: ProductFilters = {
 export default function CategoryPage({ isSubcategory = false }) {
     const { id, subId } = useParams<{ id: string; subId: string }>();
     const [currentPage, setCurrentPage] = useState(1);
-    
+
     // Regra de negócio: Define o ID alvo baseado no contexto de subcategoria
     const targetId = isSubcategory ? subId : id;
 
@@ -53,13 +53,18 @@ export default function CategoryPage({ isSubcategory = false }) {
     }, [id, subId, isSubcategory]);
 
     /**
-     * PERFORMANCE: Memoização dos filtros ativos para evitar 
-     * disparos desnecessários no React Query (Stable Cache Key).
+     * PERFORMANCE: Memoização dos filtros ativos
+     * Adicionamos explicitamente o tipo 'Casual' para filtrar mantos de time aqui.
      */
     const activeFilters = useMemo(() => {
-        return Object.fromEntries(
+        const baseFilters = Object.fromEntries(
             Object.entries(filters).filter(([_, value]) => value !== '' && value !== null)
         );
+
+        return {
+            ...baseFilters,
+            product_type: 'Casual' // <--- Força o filtro para não vir camisas de time
+        };
     }, [filters]);
 
     /**
@@ -72,14 +77,15 @@ export default function CategoryPage({ isSubcategory = false }) {
     });
 
     /**
-     * DATA FETCHING: Produtos com chave de cache granular
-     */
+   * DATA FETCHING: Produtos
+   */
     const { data, isLoading, isPlaceholderData } = useQuery({
-        queryKey: ['products', isSubcategory ? 'sub' : 'cat', targetId, currentPage, activeFilters],
+        // Adicione 'Casual' à chave de cache para evitar conflitos de cache com a TeamsPage
+        queryKey: ['products', isSubcategory ? 'sub' : 'cat', targetId, currentPage, activeFilters, 'Casual'],
         queryFn: () => getProducts(targetId!, isSubcategory, currentPage, activeFilters),
-        staleTime: 1000 * 60 * 5, // 5 minutos
+        staleTime: 1000 * 60 * 5,
         enabled: !!targetId,
-        placeholderData: (previousData) => previousData, // Mantém dados antigos enquanto carrega (UX de transição)
+        placeholderData: (previousData) => previousData,
     });
 
     /**
@@ -120,7 +126,7 @@ export default function CategoryPage({ isSubcategory = false }) {
             <ProductPageLayout
                 title={data?.categoryName || categoryTitle}
                 products={data?.products || []}
-                brands={brandsData || []} 
+                brands={brandsData || []}
                 isLoading={isLoading}
                 isTransitioning={isPlaceholderData} // Nova prop para feedback visual suave
                 pagination={data?.pagination}

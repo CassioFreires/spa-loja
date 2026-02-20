@@ -25,17 +25,22 @@ export default function MyProducts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page] = useState(1);
+  // AJUSTE: Estado para controlar a página atual
+  const [currentPage, setCurrentPage] = useState(1);
+
 
   // --- ESTADOS ---
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // --- HOOKS ---
-  const { products, isLoading } = useAdminProducts(page, debouncedSearch);
+  const { products, isLoading, pagination } = useAdminProducts(currentPage, debouncedSearch);
   const deleteMutation = useDeleteProduct();
-
   useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearch(searchTerm), 500);
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Volta para pag 1 ao pesquisar
+    }, 500);
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
@@ -137,11 +142,35 @@ export default function MyProducts() {
             </table>
           )}
         </div>
+
+        {!isLoading && pagination && pagination.lastPage > 1 && (
+          <div className="p-6 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase text-zinc-400 italic">
+              Página {pagination.currentPage} de {pagination.lastPage}
+            </span>
+            <div className="flex gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => { setCurrentPage(prev => prev - 1); window.scrollTo(0, 0); }}
+                className="px-4 py-2 bg-white border border-zinc-200 rounded-xl text-[10px] font-black uppercase disabled:opacity-30"
+              >
+                Anterior
+              </button>
+              <button
+                disabled={currentPage === pagination.lastPage}
+                onClick={() => { setCurrentPage(prev => prev + 1); window.scrollTo(0, 0); }}
+                className="px-4 py-2 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase disabled:opacity-30"
+              >
+                Próximo
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {selectedProduct && (
         <EditProductModal
-          product={selectedProduct}
+          productId={selectedProduct.id} 
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
