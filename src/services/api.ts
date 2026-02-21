@@ -1,28 +1,37 @@
-// services/api.ts
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
+// Prioriza o .env, senão usa o IP fixo da sua VPS
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://187.77.36.30:3000';
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    }
 });
 
-// INTERCEPTOR: Adiciona o Token de forma global
+// INTERCEPTOR: Adiciona o Token em todas as requisições
 axiosInstance.interceptors.request.use((config) => {
     const token = localStorage.getItem('authToken'); 
-    if (token) {
+    if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
+}, (error) => {
+    return Promise.reject(error);
 });
 
-// Tratamento de erro 401 (Token expirado ou inválido)
+// INTERCEPTOR: Tratamento de erro global (401)
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Se a API retornar 401, desloga o usuário
         if (error.response?.status === 401) {
             localStorage.removeItem('authToken');
-            window.location.href = '/login';
+            // Evita loop infinito se já estiver no login
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }
