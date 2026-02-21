@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { 
   Instagram, Facebook, Twitter, MapPin, 
-  Phone, Mail, ChevronRight, CreditCard, 
+  Phone, ChevronRight, CreditCard, 
   ShieldCheck, ArrowUpRight 
 } from 'lucide-react';
 

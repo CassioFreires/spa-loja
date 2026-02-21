@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { RefreshCcw, Truck, MessageCircle, AlertTriangle, CheckCircle2, PackageSearch, ArrowUpRight } from 'lucide-react';
 
 /**

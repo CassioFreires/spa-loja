@@ -1,4 +1,4 @@
-import type{ InternalAxiosRequestConfig } from 'axios';
+import type { InternalAxiosRequestConfig } from 'axios';
 import axiosInstance from '../api';
 
 // --- INTERFACES ---
@@ -9,14 +9,19 @@ export interface LoginCredentials {
 
 export interface AuthResponse {
   access_token: string;
+  token_type: string;
+  expires_in: number;
   user: {
     id: string;
     email: string;
     name: string;
-    role: string; // Adicionado para bater com seu backend
+    role: {
+      id: string;
+      name: "ADMIN" | "SUPORTE" | "CLIENTE";
+    };
+    permissions: string[];
   };
 }
-
 // --- INSTÂNCIA ---
 
 

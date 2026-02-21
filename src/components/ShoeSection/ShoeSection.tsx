@@ -1,7 +1,6 @@
 import { ArrowRight, ShoppingCart, Footprints, Star, Loader2 } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useFootwear } from '../modals/useFootwear';
-import ProductDetailModal from '../modals/productDetailModal';
 
 /**
  * @component ShoeSection
@@ -9,8 +8,8 @@ import ProductDetailModal from '../modals/productDetailModal';
  */
 export default function ShoeSection() {
   const { data: shoes, isLoading } = useFootwear();
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [, setSelectedProduct] = useState<any>(null);
+  const [, setIsModalOpen] = useState(false);
 
   const DEFAULT_SHOE = "/assets/images/products/default-shoe.jpg";
 

@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-    Trophy, Globe, Zap, Filter, Search, Loader2,
-    ChevronRight, Award, ArrowRight, ShieldCheck
+    Trophy, Globe, Zap, Search, Loader2,
+     Award, ArrowRight, ShieldCheck
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -32,11 +32,11 @@ export default function TeamsPage() {
     const [searchQuery, setSearchQuery] = useState('');
 
     // --- ESTADOS DO MODAL (Resolve o erro TS2741) ---
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [productForModal, setProductForModal] = useState<any>(null);
+    const [, setIsModalOpen] = useState(false);
+    const [, setProductForModal] = useState<any>(null);
 
     // --- FETCH DE DADOS (REACT QUERY) ---
-    const { data: teams = [] } = useQuery({
+    const {} = useQuery({
         queryKey: ['teams-list'],
         queryFn: getTeams,
         staleTime: 1000 * 60 * 30, // 30 minutos (dados estáticos de times)

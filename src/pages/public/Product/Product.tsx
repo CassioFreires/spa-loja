@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, MessageSquare, Truck, ChevronDown, Filter, X, Tag, DollarSign, Layers } from 'lucide-react';
 import ProductDetailModal from '../../../components/modals/productDetailModal';
@@ -45,8 +45,6 @@ export default function ProductPageLayout({
   products,
   brands,
   isLoading,
-  pagination,
-  onPageChange,
   filters,
   onFilterChange
 }: ProductPageLayoutProps) {

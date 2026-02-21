@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import  { useMemo } from 'react';
 import { 
     ArrowLeft, Ruler, Info, ChevronRight, 
-    CheckCircle2, AlertCircle, Share2 
+    CheckCircle2, AlertCircle 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 

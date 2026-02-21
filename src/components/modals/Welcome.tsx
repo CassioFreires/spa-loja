@@ -1,4 +1,4 @@
-import { X, Sparkles, Heart, Coffee, Smile, MapPin, Star, Gift } from 'lucide-react';
+import { X, Heart, Coffee, Smile, MapPin, Star } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface WelcomeModalProps {

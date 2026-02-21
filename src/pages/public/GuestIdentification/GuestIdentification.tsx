@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { User, Mail, ArrowRight } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function GuestIdentification() {

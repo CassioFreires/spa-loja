@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ArrowLeft, ShieldCheck, Lock, ShoppingBag, Loader2, ExternalLink } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useCart } from '../../../../context/CartContext';
 import { createOrder } from '../../../../services/Orders/orders';

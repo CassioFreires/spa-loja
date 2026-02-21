@@ -1,4 +1,4 @@
-import { Star, UserCheck, ShieldCheck, Quote, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
+import { Star, UserCheck, ShieldCheck, Quote, ArrowRight, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';

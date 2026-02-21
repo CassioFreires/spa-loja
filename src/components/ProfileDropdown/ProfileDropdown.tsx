@@ -3,7 +3,6 @@ import {
   Settings, 
   LogOut, 
   Package, 
-  Heart, 
   ShieldCheck, 
   ChevronRight 
 } from 'lucide-react';

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Package, Loader2, ExternalLink, XCircle, ArrowLeft, ShieldCheck, Box } from 'lucide-react';
+import { Package, Loader2, ExternalLink, ArrowLeft, ShieldCheck, Box } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMyOrders, cancelOrder } from '../../../services/Orders/orders';
@@ -25,7 +25,7 @@ export default function MyOrders() {
     // --- SOLUÇÃO PARA O REFRESH ---
     // Incluímos o user.id e role_id na queryKey. 
     // Se o usuário deslogar e logar com outro, a chave muda e o React Query busca dados novos automaticamente.
-    const { data: orders = [], isLoading, refetch } = useQuery({
+    const { data: orders = [], isLoading } = useQuery({
         queryKey: ['my-orders', user?.id, user?.role_id], 
         queryFn: getMyOrders,
         staleTime: 0, // Considera os dados obsoletos na hora

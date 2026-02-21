@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     X, Save, Loader2, Shirt, ListTree, ShieldCheck,
-    AlertCircle, Hash, Box, Palette, Ruler, User,
+    AlertCircle,
     Image as ImageIcon, Upload, Trash2
 } from 'lucide-react';
 import { useEditProduct } from '../../hooks/useEditProduct';
@@ -27,7 +27,7 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
     const [isLoadingData, setIsLoadingData] = useState(false);
     const [categories, setCategories] = useState<any[]>([]);
     const [brands, setBrands] = useState<any[]>([]);
-    const [teams, setTeams] = useState<any[]>([]);
+    const [, setTeams] = useState<any[]>([]);
     const [dbVariationTypes, setDbVariationTypes] = useState<any[]>([]);
     const [dbOptions, setDbOptions] = useState<any[]>([]);
 
@@ -153,7 +153,6 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
 
     const brandOptions = useMemo(() => brands.map(b => ({ value: String(b.id), label: b.name })), [brands]);
     const categoryOptions = useMemo(() => categories.map(c => ({ value: String(c.id), label: c.name })), [categories]);
-    const teamOptions = useMemo(() => teams.map(t => ({ value: String(t.id), label: t.name })), [teams]);
     const subcategoryOptions = useMemo(() => {
         const selectedCat = categories.find(c => String(c.id) === formData?.category_id);
         return selectedCat?.subcategories?.map((s: any) => ({ value: String(s.id), label: s.name })) || [];

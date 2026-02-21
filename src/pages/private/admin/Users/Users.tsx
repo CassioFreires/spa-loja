@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
     Users, Shield, Mail, Search, ArrowLeft, 
-    Loader2, Power, UserCog, ChevronRight 
+    Loader2, Power, UserCog 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminUsers } from '../../../../hooks/useAdminUsers';

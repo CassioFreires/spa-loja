@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Trash2, ArrowLeft, Loader2, Percent, Star, Search, ChevronDown, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFeaturedProducts } from '../../../../hooks/useFeaturedProducts';

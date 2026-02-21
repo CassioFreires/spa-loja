@@ -27,7 +27,7 @@ const getLogStyle = (level: LogLevel): string => {
   return styles[level];
 };
 
-const formatLog = (message: string, data?: LogData): void => {
+const formatLog = (data?: LogData): void => {
   if (data && Object.keys(data).length > 0) {
     console.log(`📋 ${JSON.stringify(data, null, 2)}`);
   }
@@ -39,7 +39,7 @@ const formatLog = (message: string, data?: LogData): void => {
 export const logSuccess = (message: string, data?: LogData): void => {
   const timestamp = getTimestamp();
   console.log(`%c[${timestamp}] ✅ ${message}`, getLogStyle('success'));
-  formatLog(message, data);
+  formatLog(data);
 };
 
 /**
@@ -48,7 +48,7 @@ export const logSuccess = (message: string, data?: LogData): void => {
 export const logError = (message: string, data?: LogData): void => {
   const timestamp = getTimestamp();
   console.error(`%c[${timestamp}] ❌ ${message}`, getLogStyle('error'));
-  formatLog(message, data);
+  formatLog(data);
 };
 
 /**
@@ -57,7 +57,7 @@ export const logError = (message: string, data?: LogData): void => {
 export const logInfo = (message: string, data?: LogData): void => {
   const timestamp = getTimestamp();
   console.log(`%c[${timestamp}] ℹ️ ${message}`, getLogStyle('info'));
-  formatLog(message, data);
+  formatLog(data);
 };
 
 /**
@@ -66,5 +66,5 @@ export const logInfo = (message: string, data?: LogData): void => {
 export const logWarn = (message: string, data?: LogData): void => {
   const timestamp = getTimestamp();
   console.warn(`%c[${timestamp}] ⚠️ ${message}`, getLogStyle('warn'));
-  formatLog(message, data);
+  formatLog(data);
 };

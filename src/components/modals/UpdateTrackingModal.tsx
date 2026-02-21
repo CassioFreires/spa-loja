@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { X, MapPin, ClipboardList, Send, Loader2, CheckCircle2, Navigation } from 'lucide-react';
+import { X, MapPin, ClipboardList, Send, Loader2, Navigation } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addTrackingEvent } from '../../services/Shipments/shipments';
 import toast from 'react-hot-toast';

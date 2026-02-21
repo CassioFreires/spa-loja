@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, MapPin, Loader2, Home, Briefcase, Map, Search, MessageSquare } from 'lucide-react';
+import { X, Save, MapPin, Loader2, Search, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';

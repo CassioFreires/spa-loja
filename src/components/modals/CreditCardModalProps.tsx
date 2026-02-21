@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, CreditCard, ShieldCheck, Lock, Save, Trash2 } from 'lucide-react';
+import { X, Plus, CreditCard, ShieldCheck, Lock, Save, } from 'lucide-react';
 
 interface Card {
     id: string;
@@ -16,7 +16,7 @@ interface CreditCardModalProps {
 
 export default function CreditCardModal({ isOpen, onClose, onSelectCard }: CreditCardModalProps) {
     const [showNewCardForm, setShowNewCardForm] = useState(false);
-    const [savedCards, setSavedCards] = useState<Card[]>([
+    const [savedCards] = useState<Card[]>([
         { id: '1', brand: 'Mastercard', lastFour: '4482', expiry: '08/29' },
         { id: '2', brand: 'Visa', lastFour: '1029', expiry: '12/27' },
     ]);

@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
     ArrowLeft, Image as ImageIcon, Plus, Save, Upload,
-    ListTree, Trash2, Layers, Wand2, Shirt, Info, ShieldCheck,
-    ChevronRight
+    ListTree, Trash2, Layers, Wand2, Shirt, ShieldCheck,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -55,7 +54,7 @@ export default function AdminAddProduct() {
     const [brands, setBrands] = useState<any[]>([]);
     const [dbVariationTypes, setDbVariationTypes] = useState<any[]>([]);
     const [dbOptions, setDbOptions] = useState<any[]>([]);
-    const [teams, setTeams] = useState<any[]>([]);
+    const [, setTeams] = useState<any[]>([]);
 
     const [mainImage, setMainImage] = useState<File | null>(null);
     const [gallery, setGallery] = useState<File[]>([]);
@@ -91,8 +90,6 @@ export default function AdminAddProduct() {
 
     const brandOptions = useMemo(() => brands.map(b => ({ value: String(b.id), label: b.name })), [brands]);
     const categoryOptions = useMemo(() => categories.map(c => ({ value: String(c.id), label: c.name })), [categories]);
-    const teamOptions = useMemo(() => teams.map(t => ({ value: String(t.id), label: t.name })), [teams]);
-
     const subcategoryOptions = useMemo(() => {
         const selectedCat = categories.find(c => String(c.id) === formData.category_id);
         return selectedCat?.subcategories?.map((s: any) => ({ value: String(s.id), label: s.name })) || [];

@@ -1,7 +1,6 @@
 import { ShoppingCart, Star, Flame, ArrowRight, Loader2, Tag } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useBestSellers } from '../../hooks/useBestSellers';
-import { useCart } from '../../context/CartContext';
 import ProductDetailModal from '../modals/productDetailModal';
 
 /**
@@ -10,7 +9,6 @@ import ProductDetailModal from '../modals/productDetailModal';
  */
 export default function BestSellers() {
   const { data: products, isLoading } = useBestSellers(4);
-  const { addToCart } = useCart();
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 

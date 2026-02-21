@@ -24,8 +24,6 @@ interface Product {
 export default function MyProducts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [page] = useState(1);
-  // AJUSTE: Estado para controlar a página atual
   const [currentPage, setCurrentPage] = useState(1);
 
 

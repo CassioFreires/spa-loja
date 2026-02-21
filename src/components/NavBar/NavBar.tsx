@@ -104,6 +104,7 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const hasAdminAccess = user?.role.name === 'ADMIN' || user?.role.name === 'SUPORTE';
+  console.log(user)
 
   const { data: categories = [], isLoading } = useQuery<CategoryWithSub[]>({
     queryKey: ['subcategories-menu'],
