@@ -1,5 +1,6 @@
 import { ShoppingBag, ChevronRight, Sparkles, ShieldCheck, Truck } from 'lucide-react';
 import CanvasEffect from '../style/Background';
+import { Link } from 'react-router-dom';
 
 export default function Banner() {
   return (
@@ -87,24 +88,26 @@ export default function Banner() {
 
         {/* Actions - Botões mais convidativos */}
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto animate-fade-in [animation-delay:400ms]">
-          <button
-            className="group relative overflow-hidden bg-gradient-to-r from-yellow-500 to-yellow-400 
+          <Link to={'/categoria/1'}>
+            <button
+              className="group relative overflow-hidden bg-gradient-to-r from-yellow-500 to-yellow-400 
                      hover:from-yellow-400 hover:to-yellow-500 text-black font-black 
                      py-5 px-10 rounded-2xl flex items-center justify-center gap-3 
                      transition-all duration-300 active:scale-95 shadow-lg 
                      hover:shadow-yellow-500/40 hover:scale-[1.02]"
-            aria-label="Comprar camisas de time agora"
-          >
-            {/* Efeito de brilho */}
-            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent 
+              aria-label="Comprar camisas de time agora"
+            >
+              {/* Efeito de brilho */}
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent 
                            -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
 
-            <ShoppingBag className="w-5 h-5 group-hover:rotate-12 group-hover:scale-110 transition-all" />
-            <span className="tracking-tighter text-base md:text-lg">COMPRAR AGORA</span>
-            <span className="hidden sm:inline bg-black/20 px-2 py-0.5 rounded-full text-[10px] ml-1">
-              10% OFF
-            </span>
-          </button>
+              <ShoppingBag className="w-5 h-5 group-hover:rotate-12 group-hover:scale-110 transition-all" />
+              <span className="tracking-tighter text-base md:text-lg">COMPRAR AGORA</span>
+              <span className="hidden sm:inline bg-black/20 px-2 py-0.5 rounded-full text-[10px] ml-1">
+                10% OFF
+              </span>
+            </button>
+          </Link>
 
           <button
             className="group border-2 border-white/30 backdrop-blur-md bg-white/5 

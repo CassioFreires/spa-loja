@@ -9,7 +9,7 @@ RUN npm run build
 # Estágio 2: Serve com Nginx
 FROM nginx:stable-alpine
 # Copia o build para a pasta do Nginx
-COPY --from:build /app/dist /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 # Copia uma config customizada do Nginx (importante para o React Router)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
