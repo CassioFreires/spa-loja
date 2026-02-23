@@ -3,9 +3,6 @@ import {
   ChevronDown,
   X,
   Truck,
-  Ruler,
-  ShieldCheck,
-  MessageSquare,
   LayoutGrid,
   Loader2,
   Package,
@@ -40,12 +37,6 @@ interface NavBarProps {
   onToggleAdminMenu?: () => void;
 }
 
-const SUPORTE_LINKS = [
-  { name: 'Rastreio', path: '/rastreamento-do-pedido', icon: <Truck className="w-3.5 h-3.5" /> },
-  { name: 'Guia de Medidas', path: '/guia-de-medidas', icon: <Ruler className="w-3.5 h-3.5" /> },
-  { name: 'Segurança', path: '/seguranca', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
-  { name: 'Trocas', path: '/trocas', icon: <MessageSquare className="w-3.5 h-3.5" /> },
-];
 
 /* =========================
    Sub-Componentes Memoizados
