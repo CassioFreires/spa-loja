@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { z } from 'zod';
+import { getCep } from '../../services/cep/cep';
 
 const MySwal = withReactContent(Swal);
 
@@ -41,7 +42,7 @@ interface AddressModalProps {
 export default function AddressModal({ isOpen, onClose, onSave, initialData }: AddressModalProps) {
     const [isSearchingCep, setIsSearchingCep] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    
+
     // Inicialização segura para evitar 'undefined'
     const [formData, setFormData] = useState<Address>({
         street: '', number: '', complement: '', neighborhood: '',
@@ -70,20 +71,9 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
     }, [initialData, isOpen]);
 
     const handleSearchCep = async () => {
-        const cleanCep = (formData.zip_code || '').replace(/\D/g, '');
-        
-        if (!cleanCep) return toast.error("Por favor, digite o CEP primeiro");
-        if (cleanCep.length !== 8) return toast.error("CEP incompleto");
-
         setIsSearchingCep(true);
         try {
-            const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-            const data = await response.json();
-            
-            if (data.erro) {
-                toast.error("Não encontramos este CEP");
-                return;
-            }
+            const data = await getCep(formData.zip_code);
 
             setFormData(prev => ({
                 ...prev,
@@ -92,9 +82,9 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
                 city: data.localidade || '',
                 state: data.uf || ''
             }));
-            toast.success("Endereço localizado!", { icon: '📍' });
-        } catch (error) {
-            toast.error("Erro na busca do CEP");
+            toast.success("Endereço localizado!");
+        } catch (error: any) {
+            toast.error(error.message);
         } finally {
             setIsSearchingCep(false);
         }
