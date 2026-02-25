@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, MessageSquare, Truck, ChevronDown, Filter, X, Tag, DollarSign, Layers } from 'lucide-react';
 import ProductDetailModal from '../../../components/modals/productDetailModal';
+import { getImageUrl } from '../../../utils/getImageUrl';
 
 /** * INTERFACES TÉCNICAS (Mantidas para compatibilidade) */
 export interface Product {
@@ -9,7 +10,12 @@ export interface Product {
   name: string;
   price: number;
   old_price?: number;
-  image_url: string;
+  image_1?: string;
+  image_2?: string;
+  image_3?: string;
+  image_4?: string;
+  image_5?: string;
+  image_6?: string;
   category_name?: string;
   subcategory_name?: string;
   brand_id?: number | string;
@@ -78,6 +84,7 @@ export default function ProductPageLayout({
 
   const toggleMobileFilters = () => setIsMobileFiltersOpen(!isMobileFiltersOpen);
 
+  console.log(products)
   return (
     <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 min-h-screen font-sans italic">
       
@@ -314,7 +321,7 @@ function ProductCard({ product }: { product: Product }) {
         </div>
 
         <img
-          src={product.image_url}
+          src={getImageUrl(product.image_1)}
           alt={product.name}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110"

@@ -14,6 +14,7 @@ import { getSubcategories } from '../../services/Subcategories/subcategories';
 import { getBrands } from '../../services/Brands/brands';
 import { getTeams } from '../../services/Teams/teams';
 import { SelectSearch } from '../Selects/SelectSearch/SelectSearch';
+import { getImageUrl } from '../../utils/getImageUrl';
 
 interface EditProductModalProps {
     productId: number | string | null;
@@ -55,7 +56,6 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                 setDbVariationTypes(vTypes.filter((t: any) => t.active));
                 setDbOptions(vOpts);
 
-                // IMPORTANTE: Inicializamos apenas os campos que o DTO aceita
                 setFormData({
                     name: productDetail.name,
                     description: productDetail.description,
@@ -70,7 +70,6 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                     version_name: productDetail.version_name || '',
                     season: productDetail.season || '',
                     region: productDetail.region || 'Nacional',
-                    // Mantemos as referências das imagens atuais
                     image_1: productDetail.image_1,
                     image_2: productDetail.image_2,
                     image_3: productDetail.image_3,
@@ -116,7 +115,6 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
 
         const submitData = new FormData();
 
-        // 1. Limpeza de Dados: Definimos exatamente o que o DTO do Backend espera
         const allowedFields = [
             'name', 'description', 'price', 'brand_id', 'category_id', 
             'subcategory_id', 'product_type', 'team_id', 'stock', 
@@ -129,13 +127,11 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
             }
         });
 
-        // 2. Cálculo de estoque total
         const totalStock = variations.length > 0
             ? variations.reduce((acc, v) => acc + Number(v.stock || 0), 0)
             : Number(formData.stock || 0);
         submitData.set('stock', String(totalStock));
 
-        // 3. Imagens (Novas)
         Object.entries(newImages).forEach(([key, file]) => {
             if (file) submitData.append(key, file);
         });
@@ -185,7 +181,6 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                         </header>
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col lg:flex-row">
-                            {/* COLUNA ESQUERDA: GESTÃO DE 6 IMAGENS */}
                             <aside className="w-full lg:w-80 p-6 bg-zinc-50/50 border-r border-zinc-100 space-y-6">
                                 <div className="flex items-center gap-2 mb-4">
                                     <ImageIcon size={16} className="text-yellow-600" />
@@ -195,9 +190,11 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                                     {[1, 2, 3, 4, 5, 6].map((num) => {
                                         const key = `image_${num}`;
                                         const currentImg = formData[key];
+                                        
+                                        // Ajuste aqui: Verifica se há um novo arquivo local, senão usa a função de URL da API
                                         const preview = newImages[key]
                                             ? URL.createObjectURL(newImages[key]!)
-                                            : (currentImg ? `${import.meta.env.VITE_API_URL}/uploads/${currentImg}` : null);
+                                            : (currentImg ? getImageUrl(currentImg) : null);
 
                                         return (
                                             <div key={key} className="group relative aspect-[3/4] bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm hover:border-yellow-500 transition-all">
@@ -230,7 +227,6 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                             </aside>
 
                             <main className="flex-1 p-6 md:p-10 space-y-10 text-left italic">
-                                {/* INFO BÁSICA */}
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                                     <div className="md:col-span-8">
                                         <label className="text-[10px] font-black uppercase text-zinc-400 ml-2 mb-2 block tracking-widest">Nome do Produto</label>
@@ -253,7 +249,6 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                                     </div>
                                 </div>
 
-                                {/* GRADE MASTER */}
                                 <section className="space-y-6">
                                     <div className="flex items-center gap-3 px-2">
                                         <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-yellow-500 shadow-md"><ListTree size={18} /></div>
@@ -311,7 +306,6 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                                     )}
                                 </section>
 
-                                {/* DESCRIÇÃO */}
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black uppercase text-zinc-400 ml-2 block tracking-widest italic">Descrição do Produto</label>
                                     <textarea rows={4} value={formData.description} onChange={(e) => updateFormField('description', e.target.value)} className="w-full bg-zinc-50 border-2 border-transparent p-6 rounded-[32px] font-bold text-xs italic outline-none focus:bg-white focus:border-yellow-500/50 transition-all leading-relaxed" />
@@ -319,7 +313,6 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                             </main>
                         </div>
 
-                        {/* RODAPÉ */}
                         <footer className="p-6 md:p-8 border-t border-zinc-100 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
                              <button type="button" onClick={() => updateFormField('active', !formData.active)} className={`px-6 py-3 rounded-full text-[9px] font-black uppercase italic transition-all flex items-center gap-3 ${formData.active ? 'bg-emerald-50 text-emerald-600 shadow-sm' : 'bg-zinc-100 text-zinc-400'}`}>
                                 <div className={`w-2 h-2 rounded-full ${formData.active ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />

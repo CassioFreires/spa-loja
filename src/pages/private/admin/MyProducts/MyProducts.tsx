@@ -6,6 +6,7 @@ import EditProductModal from '../../../../components/modals/EditProductModalProp
 import { useDeleteProduct } from '../../../../hooks/useDeleteProduct';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import { getImageUrl } from '../../../../utils/getImageUrl';
 
 const MySwal = withReactContent(Swal);
 
@@ -197,7 +198,7 @@ const ProductRow = ({ product, onEdit, onDelete }: { product: Product, onEdit: (
       <td className="px-8 py-6">
         <div className="flex items-start gap-5">
           <div className="relative mt-1">
-            <img src={product.image_1} alt={product.name} className="w-16 h-16 rounded-2xl object-cover border border-zinc-200 shadow-sm group-hover:scale-105 transition-all duration-500" />
+            <img src={getImageUrl(product.image_1)} alt={product.name} className="w-16 h-16 rounded-2xl object-cover border border-zinc-200 shadow-sm group-hover:scale-105 transition-all duration-500" />
             {product.hasVariations && (
               <div className="absolute -top-2 -right-2 bg-zinc-950 text-white p-1.5 rounded-lg shadow-lg border border-white/20">
                 <Layers size={10} />
