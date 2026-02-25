@@ -108,6 +108,23 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
 
     const handleImageChange = (key: string, file: File | null) => {
         setNewImages(prev => ({ ...prev, [key]: file }));
+        // Se um arquivo foi selecionado, garantimos que o formData não esteja marcado como vazio ("")
+        if (file) {
+            updateFormField(key, "pending_upload");
+        }
+    };
+
+    const handleRemoveImage = (key: string) => {
+        setNewImages(prev => {
+            const updated = { ...prev };
+            delete updated[key];
+            return updated;
+        });
+
+        setFormData((prev: any) => ({
+            ...prev,
+            [key]: "" // Enviar string vazia sinaliza ao backend para remover o arquivo físico
+        }));
     };
 
     const handleSave = async () => {
@@ -116,8 +133,8 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
         const submitData = new FormData();
 
         const allowedFields = [
-            'name', 'description', 'price', 'brand_id', 'category_id', 
-            'subcategory_id', 'product_type', 'team_id', 'stock', 
+            'name', 'description', 'price', 'brand_id', 'category_id',
+            'subcategory_id', 'product_type', 'team_id', 'stock',
             'active', 'version_name', 'season', 'region'
         ];
 
@@ -132,9 +149,15 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
             : Number(formData.stock || 0);
         submitData.set('stock', String(totalStock));
 
-        Object.entries(newImages).forEach(([key, file]) => {
-            if (file) submitData.append(key, file);
-        });
+        // Lógica de Imagens: Anexa novos arquivos ou sinaliza remoção ("")
+        for (let i = 1; i <= 6; i++) {
+            const key = `image_${i}`;
+            if (newImages[key]) {
+                submitData.append(key, newImages[key]!);
+            } else if (formData[key] === "") {
+                submitData.append(key, ""); // Backend recebe string vazia e deleta o arquivo
+            }
+        }
 
         try {
             await mutation.mutateAsync({
@@ -189,17 +212,25 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                                 <div className="grid grid-cols-2 gap-3">
                                     {[1, 2, 3, 4, 5, 6].map((num) => {
                                         const key = `image_${num}`;
-                                        const currentImg = formData[key];
-                                        
-                                        // Ajuste aqui: Verifica se há um novo arquivo local, senão usa a função de URL da API
+                                        const currentValue = formData[key];
+
                                         const preview = newImages[key]
                                             ? URL.createObjectURL(newImages[key]!)
-                                            : (currentImg ? getImageUrl(currentImg) : null);
+                                            : (currentValue && currentValue !== "" ? getImageUrl(currentValue) : null);
 
                                         return (
                                             <div key={key} className="group relative aspect-[3/4] bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm hover:border-yellow-500 transition-all">
                                                 {preview ? (
-                                                    <img src={preview} className="w-full h-full object-cover" alt="" />
+                                                    <>
+                                                        <img src={preview} className="w-full h-full object-cover" alt="" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemoveImage(key); }}
+                                                            className="absolute top-1 right-1 z-30 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 bg-red-600 text-white rounded-lg transition-all hover:bg-red-700"
+                                                        >
+                                                            <Trash2 size={10} />
+                                                        </button>
+                                                    </>
                                                 ) : (
                                                     <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300">
                                                         <Upload size={16} />
@@ -208,17 +239,10 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                                                 )}
                                                 <input
                                                     type="file"
+                                                    accept="image/*"
                                                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                                     onChange={(e) => handleImageChange(key, e.target.files?.[0] || null)}
                                                 />
-                                                {preview && (
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); handleImageChange(key, null); }}
-                                                        className="absolute top-1 right-1 z-20 opacity-0 group-hover:opacity-100 p-1.5 bg-red-600 text-white rounded-lg transition-opacity"
-                                                    >
-                                                        <Trash2 size={10} />
-                                                    </button>
-                                                )}
                                             </div>
                                         );
                                     })}
@@ -314,7 +338,7 @@ export default function EditProductModal({ productId, isOpen, onClose }: EditPro
                         </div>
 
                         <footer className="p-6 md:p-8 border-t border-zinc-100 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
-                             <button type="button" onClick={() => updateFormField('active', !formData.active)} className={`px-6 py-3 rounded-full text-[9px] font-black uppercase italic transition-all flex items-center gap-3 ${formData.active ? 'bg-emerald-50 text-emerald-600 shadow-sm' : 'bg-zinc-100 text-zinc-400'}`}>
+                            <button type="button" onClick={() => updateFormField('active', !formData.active)} className={`px-6 py-3 rounded-full text-[9px] font-black uppercase italic transition-all flex items-center gap-3 ${formData.active ? 'bg-emerald-50 text-emerald-600 shadow-sm' : 'bg-zinc-100 text-zinc-400'}`}>
                                 <div className={`w-2 h-2 rounded-full ${formData.active ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
                                 {formData.active ? 'Ativo na Vitrine' : 'Pausado / Offline'}
                             </button>

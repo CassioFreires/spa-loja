@@ -156,3 +156,10 @@ export const getFootwear = async (): Promise<any[]> => {
         throw error;
     }
 };
+
+export const removeProductImage = async (productId: number, imageKey: string) => {
+    const response = await axiosInstance.patch(`/products/${productId}`, {
+        [imageKey]: "" 
+    });
+    return response.data;
+};
