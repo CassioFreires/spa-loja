@@ -1,20 +1,47 @@
 import React, { useState } from 'react';
-import { User, Mail, ArrowRight } from 'lucide-react';
+import { User, Mail, ArrowRight, Phone } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function GuestIdentification() {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({ name: '', email: '' });
+    const [formData, setFormData] = useState({ 
+        name: '', 
+        email: '', 
+        phone: '' 
+    });
+
+    // Função para aplicar máscara de telefone brasileiro
+    const maskPhone = (value: string) => {
+        return value
+            .replace(/\D/g, "") // Remove tudo que não é dígito
+            .replace(/(\d{2})(\d)/, "($1) $2") // Coloca parênteses em volta dos dois primeiros dígitos
+            .replace(/(\d{5})(\d)/, "$1-$2") // Coloca hífen entre o quinto e o sexto dígito
+            .replace(/(-\d{4})\d+?$/, "$1"); // Limita a 11 dígitos (celular)
+    };
 
     const handleContinue = (e: React.FormEvent) => {
         e.preventDefault();
-        // Salvamos os dados básicos no localStorage para o backend criar o "User" fantasma se necessário
-        localStorage.setItem('@app:guest_user', JSON.stringify(formData));
+
+        // Validação básica de telefone (mínimo 10 dígitos: fixo ou celular)
+        const rawPhone = formData.phone.replace(/\D/g, "");
+        if (rawPhone.length < 10) {
+            toast.error("Telefone inválido. Insira o DDD + Número.");
+            return;
+        }
+
+        // Salvamos os dados. IMPORTANTE: Enviamos o telefone limpo (apenas números) para o backend não dar erro.
+        const guestData = {
+            ...formData,
+            phone: rawPhone
+        };
+
+        localStorage.setItem('@app:guest_user', JSON.stringify(guestData));
         navigate('/endereco');
     };
 
     return (
-        <main className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
+        <main className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4 selection:bg-yellow-100">
             <div className="max-w-md w-full bg-white p-10 rounded-[3rem] shadow-2xl border border-zinc-100 italic">
                 <header className="text-center mb-8">
                     <h1 className="text-3xl font-black uppercase tracking-tighter italic">Identificação</h1>
@@ -22,6 +49,7 @@ export default function GuestIdentification() {
                 </header>
 
                 <form onSubmit={handleContinue} className="space-y-6">
+                    {/* NOME */}
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase ml-4 text-zinc-500">Nome Completo</label>
                         <div className="relative group">
@@ -31,11 +59,13 @@ export default function GuestIdentification() {
                                 type="text" 
                                 placeholder="COMO DESEJA SER CHAMADO?"
                                 className="w-full bg-zinc-50 border-2 border-zinc-100 p-4 pl-12 rounded-2xl outline-none focus:border-yellow-500 transition-all font-bold uppercase text-xs"
+                                value={formData.name}
                                 onChange={e => setFormData({...formData, name: e.target.value})}
                             />
                         </div>
                     </div>
 
+                    {/* E-MAIL */}
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase ml-4 text-zinc-500">E-mail para Rastreio</label>
                         <div className="relative group">
@@ -45,12 +75,29 @@ export default function GuestIdentification() {
                                 type="email" 
                                 placeholder="SEU@EMAIL.COM"
                                 className="w-full bg-zinc-50 border-2 border-zinc-100 p-4 pl-12 rounded-2xl outline-none focus:border-yellow-500 transition-all font-bold uppercase text-xs"
+                                value={formData.email}
                                 onChange={e => setFormData({...formData, email: e.target.value})}
                             />
                         </div>
                     </div>
 
-                    <button type="submit" className="w-full bg-zinc-900 text-white py-5 rounded-2xl font-black uppercase italic hover:bg-yellow-600 transition-all shadow-xl flex items-center justify-center gap-3">
+                    {/* TELEFONE (NOVO CAMPO) */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase ml-4 text-zinc-500">WhatsApp / Telefone</label>
+                        <div className="relative group">
+                            <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-yellow-600 transition-colors" />
+                            <input 
+                                required
+                                type="text" 
+                                placeholder="(00) 00000-0000"
+                                className="w-full bg-zinc-50 border-2 border-zinc-100 p-4 pl-12 rounded-2xl outline-none focus:border-yellow-500 transition-all font-bold uppercase text-xs"
+                                value={formData.phone}
+                                onChange={e => setFormData({...formData, phone: maskPhone(e.target.value)})}
+                            />
+                        </div>
+                    </div>
+
+                    <button type="submit" className="w-full bg-zinc-900 text-white py-5 rounded-2xl font-black uppercase italic hover:bg-yellow-600 transition-all shadow-xl flex items-center justify-center gap-3 active:scale-95">
                         Continuar para Endereço <ArrowRight size={18} />
                     </button>
                 </form>

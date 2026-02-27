@@ -116,3 +116,24 @@ export const cancelOrderGuest = async (orderCode: string, email: string) => {
     const response = await axiosInstance.patch('/orders/track/cancel', { orderCode, email });
     return response.data;
 };
+
+// services/Orders/orders.ts
+
+export const getOrderTrackingEvents = async (orderId: number) => {
+    try {
+        // QUANDO O BACKEND ESTIVER PRONTO:
+        // const response = await axiosInstance.get(`/shipments/order/${orderId}/events`);
+        // return response.data;
+
+        // DADOS FAKES PARA TESTE DE FRONTEND:
+        return [
+            { date: '2026-02-27T10:00:00Z', message: 'Pedido Recebido', location: 'Sistema' },
+            { date: '2026-02-27T10:05:00Z', message: 'Pagamento aprovado via Pix', location: 'InfinitePay' },
+            { date: '2026-02-27T10:10:00Z', message: 'Solicitação de coleta enviada para Loggi', location: 'Centro de Distribuição' },
+            // Simulando o que viria do Async Shipment da Loggi:
+            { date: '2026-02-27T14:30:00Z', message: 'Motorista Loggi a caminho da coleta', location: 'Rio de Janeiro/RJ' },
+        ];
+    } catch (error) {
+        return [];
+    }
+};
