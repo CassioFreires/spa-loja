@@ -68,18 +68,17 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
 
             <Link
               to="/"
-              className="flex-shrink-0 flex items-center justify-center transition-transform active:scale-95 duration-300"
+              className="flex-shrink-0 flex items-center transition-transform active:scale-95 duration-300"
               aria-label="Gold Store - Início"
             >
               <img
                 src="/assets/images/logo.png"
                 alt="Logo Gold Store Multimarcas"
-                className="h-full w-full object-contain transition-opacity duration-200"
+                className="h-10 md:h-14 lg:h-16 w-auto object-contain"
                 loading="eager"
                 fetchPriority="high"
               />
             </Link>
-
             <div className="hidden md:flex flex-1 max-w-2xl animate-in fade-in slide-in-from-top-1 duration-500">
               <SearchBar />
             </div>
