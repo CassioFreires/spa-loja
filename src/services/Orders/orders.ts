@@ -118,8 +118,8 @@ export const cancelOrderGuest = async (orderCode: string, email: string) => {
 };
 
 // services/Orders/orders.ts
-
-export const getOrderTrackingEvents = async (orderId: number) => {
+// orderId: number
+export const getOrderTrackingEvents = async () => {
     try {
         // QUANDO O BACKEND ESTIVER PRONTO:
         // const response = await axiosInstance.get(`/shipments/order/${orderId}/events`);
