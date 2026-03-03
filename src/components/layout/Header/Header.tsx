@@ -34,14 +34,13 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
 
   return (
     <header
-      className={`w-full sticky top-0 z-[100] transition-all duration-300 ${
-        isScrolled ? 'bg-black/90 backdrop-blur-md shadow-2xl' : 'bg-black'
-      }`}
+      className={`w-full sticky top-0 z-[100] transition-all duration-300 ${isScrolled ? 'bg-black/90 backdrop-blur-md shadow-2xl' : 'bg-black'
+        }`}
       role="banner"
     >
       {/* 2. LAYER DE CONTEÚDO: Relative z-10 para ficar acima do Canvas e SEM overflow-hidden */}
       <div className="relative z-10 w-full">
-        
+
         {/* --- TOP BAR (TRUST & INFO) --- */}
         <div className="hidden md:flex w-full bg-zinc-900/50 border-b border-white/5 py-2">
           <div className="max-w-[1440px] mx-auto px-8 flex justify-between items-center w-full">
@@ -72,17 +71,13 @@ export default function Header({ onToggleAdminMenu }: HeaderProps) {
               className="flex-shrink-0 flex items-center justify-center transition-transform active:scale-95 duration-300"
               aria-label="Gold Store - Início"
             >
-              <div className="relative h-10 md:h-16 lg:h-20 w-auto aspect-[3/1] flex items-center">
-                <img
-                  src="assets/images/logo.png"
-                  alt="Logo Gold Store Multimarcas"
-                  className="h-full w-full object-contain"
-                  loading="eager"
-                  fetchPriority="high"
-                  onLoad={(e) => (e.currentTarget.style.opacity = "1")}
-                  style={{ opacity: 0, transition: "opacity 0.2s ease-in" }}
-                />
-              </div>
+              <img
+                src="/assets/images/logo.png"
+                alt="Logo Gold Store Multimarcas"
+                className="h-full w-full object-contain transition-opacity duration-200"
+                loading="eager"
+                fetchPriority="high"
+              />
             </Link>
 
             <div className="hidden md:flex flex-1 max-w-2xl animate-in fade-in slide-in-from-top-1 duration-500">
