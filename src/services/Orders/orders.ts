@@ -118,8 +118,8 @@ export const cancelOrderGuest = async (orderCode: string, email: string) => {
 };
 
 // services/Orders/orders.ts
-// orderId: number
-export const getOrderTrackingEvents = async () => {
+
+export const getOrderTrackingEvents = async (orderId: number) => {
     try {
         // QUANDO O BACKEND ESTIVER PRONTO:
         // const response = await axiosInstance.get(`/shipments/order/${orderId}/events`);
@@ -127,7 +127,7 @@ export const getOrderTrackingEvents = async () => {
 
         // DADOS FAKES PARA TESTE DE FRONTEND:
         return [
-            { date: '2026-02-27T10:00:00Z', message: 'Pedido Recebido', location: 'Sistema' },
+            { date: '2026-02-27T10:00:00Z', message: `Pedido #${orderId} recebido`, location: 'Sistema' },
             { date: '2026-02-27T10:05:00Z', message: 'Pagamento aprovado via Pix', location: 'InfinitePay' },
             { date: '2026-02-27T10:10:00Z', message: 'Solicitação de coleta enviada para Loggi', location: 'Centro de Distribuição' },
             // Simulando o que viria do Async Shipment da Loggi:
