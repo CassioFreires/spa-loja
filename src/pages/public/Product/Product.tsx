@@ -87,7 +87,7 @@ export default function ProductPageLayout({
   console.log(products)
   return (
     <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 min-h-screen font-sans italic">
-      
+
       {/* HEADER DA PÁGINA */}
       <header className="mb-10 md:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
         <div className="space-y-4">
@@ -102,7 +102,7 @@ export default function ProductPageLayout({
         </div>
 
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={toggleMobileFilters}
             className="md:hidden flex-1 flex items-center justify-center gap-3 bg-zinc-900 text-white p-4 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
           >
@@ -127,7 +127,7 @@ export default function ProductPageLayout({
       </header>
 
       <div className="flex flex-col md:flex-row gap-12 relative">
-        
+
         {/* SIDEBAR DE FILTROS PROFISSIONAL */}
         <aside className={`
           fixed inset-0 z-[100] bg-white p-8 md:relative md:inset-auto md:z-0 md:bg-transparent md:p-0
@@ -136,19 +136,19 @@ export default function ProductPageLayout({
         `}>
           <div className="flex justify-between items-center md:hidden mb-10">
             <h2 className="font-black uppercase italic text-2xl tracking-tighter">Refinar por</h2>
-            <button onClick={toggleMobileFilters} className="p-3 bg-zinc-100 rounded-full active:scale-90 transition-all"><X size={24}/></button>
+            <button onClick={toggleMobileFilters} className="p-3 bg-zinc-100 rounded-full active:scale-90 transition-all"><X size={24} /></button>
           </div>
 
           {/* FILTRO: MARCAS */}
-          <FilterGroup title="Marcas" icon={<Tag size={14}/>}>
+          <FilterGroup title="Marcas" icon={<Tag size={14} />}>
             <div className="space-y-1 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
               {brands.map((brand) => (
                 <button
                   key={brand.id}
                   onClick={() => onFilterChange({ brand_id: filters.brand_id === brand.id ? '' : brand.id })}
                   className={`w-full flex items-center justify-between py-3 px-4 rounded-xl transition-all text-left group
-                    ${filters.brand_id === brand.id 
-                      ? 'bg-zinc-900 text-white shadow-xl translate-x-2' 
+                    ${filters.brand_id === brand.id
+                      ? 'bg-zinc-900 text-white shadow-xl translate-x-2'
                       : 'hover:bg-zinc-100 text-zinc-500'}`}
                 >
                   <span className="text-[11px] font-black uppercase tracking-tight italic">{brand.name}</span>
@@ -162,15 +162,15 @@ export default function ProductPageLayout({
 
           {/* FILTRO: TAMANHOS / NUMERAÇÃO */}
           {(Object.keys(stats.sizes).length > 0 || Object.keys(stats.numbers).length > 0) && (
-            <FilterGroup title={Object.keys(stats.sizes).length > 0 ? "Tamanhos" : "Numeração"} icon={<Layers size={14}/>}>
+            <FilterGroup title={Object.keys(stats.sizes).length > 0 ? "Tamanhos" : "Numeração"} icon={<Layers size={14} />}>
               <div className="grid grid-cols-4 gap-2">
                 {Object.entries(Object.keys(stats.sizes).length > 0 ? stats.sizes : stats.numbers).map(([val, count]) => (
                   <button
                     key={val}
                     onClick={() => onFilterChange({ size: filters.size === val ? '' : val })}
                     className={`aspect-square flex flex-col items-center justify-center border-2 rounded-xl transition-all duration-300
-                      ${filters.size === val 
-                        ? 'border-yellow-500 bg-yellow-500 text-black font-black shadow-lg scale-105' 
+                      ${filters.size === val
+                        ? 'border-yellow-500 bg-yellow-500 text-black font-black shadow-lg scale-105'
                         : 'border-zinc-100 text-zinc-400 hover:border-zinc-300'}`}
                   >
                     <span className="text-[11px] font-black">{val}</span>
@@ -190,8 +190,8 @@ export default function ProductPageLayout({
                     key={color}
                     onClick={() => onFilterChange({ color: filters.color === color ? '' : color })}
                     className={`flex items-center justify-between p-3 border-2 rounded-xl transition-all
-                      ${filters.color === color 
-                        ? 'border-zinc-900 bg-zinc-900 text-white shadow-md' 
+                      ${filters.color === color
+                        ? 'border-zinc-900 bg-zinc-900 text-white shadow-md'
                         : 'border-zinc-100 text-zinc-500 hover:border-zinc-300 hover:bg-zinc-50'}`}
                   >
                     <span className="text-[10px] font-black uppercase truncate italic">{color}</span>
@@ -203,7 +203,7 @@ export default function ProductPageLayout({
           )}
 
           {/* FILTRO: PREÇO */}
-          <FilterGroup title="Preço Máximo" icon={<DollarSign size={14}/>}>
+          <FilterGroup title="Preço Máximo" icon={<DollarSign size={14} />}>
             <div className="space-y-4">
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-400 italic">R$</span>
@@ -217,7 +217,7 @@ export default function ProductPageLayout({
               </div>
               <div className="flex flex-wrap gap-2">
                 {['150', '300', '500'].map(price => (
-                  <button 
+                  <button
                     key={price}
                     onClick={() => onFilterChange({ max_price: price })}
                     className={`text-[9px] font-black uppercase px-3 py-2 rounded-lg transition-all
@@ -251,17 +251,27 @@ export default function ProductPageLayout({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16">
+                  {products.map((product) => {
+                    console.log('IMAGE RAW:', product.image_1);
+                    console.log('IMAGE FINAL:', getImageUrl(product.image_1));
+
+                    return (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                      />
+                    );
+                  })}
+                </div>
+              </>
 
               {products.length === 0 && (
                 <div className="text-center py-40 border-2 border-dashed border-zinc-100 rounded-[3rem] bg-zinc-50/30">
                   <MessageSquare className="w-16 h-16 text-zinc-200 mx-auto mb-6" />
                   <p className="font-black uppercase text-zinc-400 text-sm tracking-widest italic">Nenhum item exclusivo por aqui hoje.</p>
-                  <button 
+                  <button
                     onClick={() => onFilterChange({ brand_id: '', size: '', color: '', max_price: '' })}
                     className="mt-6 text-yellow-600 font-black text-[10px] uppercase underline underline-offset-4"
                   >
@@ -295,15 +305,15 @@ function FilterGroup({ title, children, icon }: { title: string, children: React
 /** CARD DE PRODUTO OTIMIZADO (Original mantido com melhorias de UI) */
 function ProductCard({ product }: { product: Product }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const allSpecs = useMemo(() => 
+
+  const allSpecs = useMemo(() =>
     product.variations ? [...new Set(product.variations.map(v => v.value))] : [],
     [product.variations]
   );
 
   return (
-    <article 
-      onClick={() => setIsModalOpen(true)} 
+    <article
+      onClick={() => setIsModalOpen(true)}
       className="group flex flex-col bg-transparent relative cursor-pointer"
     >
       <div className="relative aspect-[3/4] bg-zinc-100 overflow-hidden rounded-[2rem] border border-zinc-50 shadow-sm transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-2">
