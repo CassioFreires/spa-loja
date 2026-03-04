@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, ShieldCheck, Lock, ShoppingBag, Loader2, ExternalLink, Truck, CalendarDays } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, ShoppingBag, Loader2, ExternalLink, Truck, CalendarDays } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useCart } from '../../../../context/CartContext';
