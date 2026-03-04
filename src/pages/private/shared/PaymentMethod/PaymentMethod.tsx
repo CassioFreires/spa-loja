@@ -14,7 +14,7 @@ export default function PaymentSelection() {
     // 1. TENTATIVA DE RECUPERAÇÃO HÍBRIDA
     // Prioriza o State (mais rápido), mas se falhar, busca no LocalStorage (mais seguro)
     const state = location.state || {};
-    
+
     // Busca no LocalStorage o que foi salvo pelo Modal
     const cachedFreight = JSON.parse(localStorage.getItem('@app:temp_freight') || 'null');
     const firstFreightOption = Array.isArray(cachedFreight) ? cachedFreight[0] : cachedFreight;
@@ -56,7 +56,8 @@ export default function PaymentSelection() {
             };
 
             const response = await createOrder(orderPayload);
-            const paymentUrl = response?.payment_url || response?.order?.payment_url;
+            console.log("RESPOSTA DA API:", response); // ADICIONE ESTE LOG
+            const paymentUrl = response?.payment_url || response?.order?.payment_url || response?.url;
 
             if (paymentUrl) {
                 clearCart();
@@ -66,6 +67,8 @@ export default function PaymentSelection() {
                     localStorage.removeItem('@app:guest_address');
                 }
                 navigate('/checkout/redirect', { state: { url: paymentUrl }, replace: true });
+            } else {
+                toast.error("O link de pagamento não pôde ser gerado. Tente novamente.");
             }
         } catch (error: any) {
             toast.error("Erro ao processar sua compra.");
