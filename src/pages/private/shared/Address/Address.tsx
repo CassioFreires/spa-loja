@@ -34,30 +34,36 @@ export default function CheckoutAddress() {
     const [freightOptions, setFreightOptions] = useState<FreightResponse[]>([]);
     const [isCalculating, setIsCalculating] = useState(false);
 
+    // checkout-address.tsx
+
     useEffect(() => {
         const fetchFreight = async () => {
             const selected = addresses.find(a => a.id === selectedAddressId);
             if (!selected) return;
 
-            // 1. Tenta recuperar o frete que o Modal acabou de calcular
             const tempFreight = localStorage.getItem('@app:temp_freight');
-
             if (tempFreight) {
                 setFreightOptions(JSON.parse(tempFreight));
-                // Opcional: Limpa o temporário após usar para não ficar lixo
-                // localStorage.removeItem('@app:temp_freight'); 
                 return;
             }
 
-            // 2. Fallback: Se não tiver no localStorage (ex: endereço já estava cadastrado), chama a API
             setIsCalculating(true);
             try {
                 const cartTotal = 150;
                 const data = await calculateFreightAPI(selected.zip_code, cartTotal);
                 setFreightOptions(data);
             } catch (e) {
-                toast.error("Loggi: Erro ao calcular frete para este local.");
-                setFreightOptions([]);
+                // MOCK DE TESTE: Se a API falhar, injetamos um frete de R$ 0,01 para teste
+                console.warn("Loggi Offline: Injetando frete de teste.");
+                const mockFreight: FreightResponse[] = [{
+                    id: 'mock-service-id',
+                    servico: 'Loggi Teste (Simulado)',
+                    valor: 'R$ 0,01',
+                    valorNumerico: 0.01,
+                    prazo: 1
+                }];
+                setFreightOptions(mockFreight);
+                toast.error("Loggi Offline: Usando modo de teste (R$ 0,01)");
             } finally {
                 setIsCalculating(false);
             }
@@ -65,6 +71,38 @@ export default function CheckoutAddress() {
 
         if (selectedAddressId) fetchFreight();
     }, [selectedAddressId, addresses]);
+
+    // useEffect(() => {
+    //     const fetchFreight = async () => {
+    //         const selected = addresses.find(a => a.id === selectedAddressId);
+    //         if (!selected) return;
+
+    //         // 1. Tenta recuperar o frete que o Modal acabou de calcular
+    //         const tempFreight = localStorage.getItem('@app:temp_freight');
+
+    //         if (tempFreight) {
+    //             setFreightOptions(JSON.parse(tempFreight));
+    //             // Opcional: Limpa o temporário após usar para não ficar lixo
+    //             // localStorage.removeItem('@app:temp_freight'); 
+    //             return;
+    //         }
+
+    //         // 2. Fallback: Se não tiver no localStorage (ex: endereço já estava cadastrado), chama a API
+    //         setIsCalculating(true);
+    //         try {
+    //             const cartTotal = 150;
+    //             const data = await calculateFreightAPI(selected.zip_code, cartTotal);
+    //             setFreightOptions(data);
+    //         } catch (e) {
+    //             toast.error("Loggi: Erro ao calcular frete para este local.");
+    //             setFreightOptions([]);
+    //         } finally {
+    //             setIsCalculating(false);
+    //         }
+    //     };
+
+    //     if (selectedAddressId) fetchFreight();
+    // }, [selectedAddressId, addresses]);
 
     /**
      * FUNÇÃO CORRIGIDA: handleOpenModal
