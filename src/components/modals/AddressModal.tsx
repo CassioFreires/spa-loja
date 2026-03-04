@@ -70,19 +70,34 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
         }
     }, [initialData, isOpen]);
 
+    // Dentro do AddressModal.tsx
+
+    // Dentro do AddressModal.tsx
     const handleSearchCep = async () => {
         setIsSearchingCep(true);
-        try {
-            const data = await getCep(formData.zip_code);
 
-            setFormData(prev => ({
-                ...prev,
-                street: data.logradouro || '',
-                neighborhood: data.bairro || '',
-                city: data.localidade || '',
-                state: data.uf || ''
-            }));
-            toast.success("Endereço localizado!");
+        try {
+            const cartTotal = 150;
+            // Chama a função que agora bate no seu NestJS
+            const data = await getCep(formData.zip_code, cartTotal);
+
+
+            // Verificamos o novo formato { address, shipping }
+            if (data && data.address) {
+                setFormData(prev => ({
+                    ...prev,
+                    street: data.address.logradouro || '',
+                    neighborhood: data.address.bairro || '',
+                    city: data.address.localidade || '',
+                    state: data.address.uf || ''
+                }));
+
+                if (data.shipping && data.shipping.length > 0) {
+
+                    localStorage.setItem('@app:temp_freight', JSON.stringify(data.shipping));
+                    toast.success(`Loggi: ${data.shipping[0].valor} (${data.shipping[0].prazo} dias)`);
+                }
+            }
         } catch (error: any) {
             toast.error(error.message);
         } finally {

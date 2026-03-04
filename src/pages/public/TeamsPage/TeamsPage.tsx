@@ -55,8 +55,6 @@ export default function TeamsPage() {
     const handleOpenModal = useCallback((product: any) => {
         setProductForModal(product);
         setIsModalOpen(true);
-        // Aqui você chamaria o componente de Modal real do seu projeto
-        console.log("Abrindo detalhes do produto:", product.name);
     }, []);
 
     // Filtro de busca local para performance instantânea

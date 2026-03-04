@@ -44,8 +44,6 @@ axiosInstance.interceptors.request.use((config) => {
  */
 export const getMyOrders = async () => {
     const response = await axiosInstance.get('/orders/my-orders');
-    console.log(response)
-    console.log(response.data)
     return response.data;
 };
 

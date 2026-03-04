@@ -84,7 +84,6 @@ export default function ProductPageLayout({
 
   const toggleMobileFilters = () => setIsMobileFiltersOpen(!isMobileFiltersOpen);
 
-  console.log(products)
   return (
     <main className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 min-h-screen font-sans italic">
 
@@ -254,9 +253,6 @@ export default function ProductPageLayout({
               <>
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16">
                   {products.map((product) => {
-                    console.log('IMAGE RAW:', product.image_1);
-                    console.log('IMAGE FINAL:', getImageUrl(product.image_1));
-
                     return (
                       <ProductCard
                         key={product.id}

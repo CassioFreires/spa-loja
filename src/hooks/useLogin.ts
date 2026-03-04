@@ -20,8 +20,6 @@ export const useLogin = () => {
       
       // Salva no contexto e no localStorage via função do context
       login(response.access_token, response.user);
-      console.log("RESPONSE USER:", response.user);
-      
       logSuccess('Login bem sucedido', { userId: response.user.id });
       navigate('/', { replace: true }); // Redireciona para a Home ou Dashboard
     } catch (err) {

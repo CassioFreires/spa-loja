@@ -9,6 +9,7 @@ import AddressModal from '../../../../components/modals/AddressModal';
 import type { Address } from '../../../../components/modals/AddressModal';
 import { getMyAddresses, createAddressAPI, deleteAddressAPI, updateAddressAPI } from '../../../../services/Address/address';
 import { useAuth } from '../../../../context/AuthContext';
+import { calculateFreightAPI, type FreightResponse } from '../../../../services/Shipments/shipments';
 
 const MySwal = withReactContent(Swal);
 
@@ -30,6 +31,40 @@ export default function CheckoutAddress() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentAddress, setCurrentAddress] = useState<Address | null>(null);
+    const [freightOptions, setFreightOptions] = useState<FreightResponse[]>([]);
+    const [isCalculating, setIsCalculating] = useState(false);
+
+    useEffect(() => {
+        const fetchFreight = async () => {
+            const selected = addresses.find(a => a.id === selectedAddressId);
+            if (!selected) return;
+
+            // 1. Tenta recuperar o frete que o Modal acabou de calcular
+            const tempFreight = localStorage.getItem('@app:temp_freight');
+
+            if (tempFreight) {
+                setFreightOptions(JSON.parse(tempFreight));
+                // Opcional: Limpa o temporário após usar para não ficar lixo
+                // localStorage.removeItem('@app:temp_freight'); 
+                return;
+            }
+
+            // 2. Fallback: Se não tiver no localStorage (ex: endereço já estava cadastrado), chama a API
+            setIsCalculating(true);
+            try {
+                const cartTotal = 150;
+                const data = await calculateFreightAPI(selected.zip_code, cartTotal);
+                setFreightOptions(data);
+            } catch (e) {
+                toast.error("Loggi: Erro ao calcular frete para este local.");
+                setFreightOptions([]);
+            } finally {
+                setIsCalculating(false);
+            }
+        };
+
+        if (selectedAddressId) fetchFreight();
+    }, [selectedAddressId, addresses]);
 
     /**
      * FUNÇÃO CORRIGIDA: handleOpenModal
@@ -51,7 +86,7 @@ export default function CheckoutAddress() {
                 const data = await getMyAddresses(token);
                 const addressList = Array.isArray(data) ? data : [];
                 setAddresses(addressList);
-                
+
                 if (addressList.length > 0 && !selectedAddressId) {
                     setSelectedAddressId(addressList[0].id!);
                 }
@@ -97,7 +132,7 @@ export default function CheckoutAddress() {
                 // Fluxo Visitante: Persistência local
                 localStorage.setItem('@app:guest_address', JSON.stringify(data));
             }
-            
+
             await loadAddresses();
             setIsModalOpen(false);
             toast.success("Local de entrega atualizado!");
@@ -127,12 +162,12 @@ export default function CheckoutAddress() {
                 } else {
                     localStorage.removeItem('@app:guest_address');
                 }
-                
+
                 await loadAddresses();
                 if (selectedAddressId === id) setSelectedAddressId('');
                 toast.success("Endereço removido!");
-            } catch (e) { 
-                toast.error("Erro ao deletar"); 
+            } catch (e) {
+                toast.error("Erro ao deletar");
             }
         }
     };
@@ -158,8 +193,8 @@ export default function CheckoutAddress() {
                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Defina o destino do seu pedido Gold</p>
                     </div>
                 </div>
-                <button 
-                    onClick={() => handleOpenModal()} 
+                <button
+                    onClick={() => handleOpenModal()}
                     className="flex items-center gap-2 bg-zinc-900 text-white px-5 py-3 rounded-xl font-black uppercase italic text-[10px] hover:bg-yellow-600 hover:text-black transition-all shadow-lg active:scale-95"
                 >
                     <Plus size={14} /> Novo Local
@@ -185,17 +220,17 @@ export default function CheckoutAddress() {
                                         <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mt-1">{address.zip_code} • {address.city}, {address.state}</p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); handleOpenModal(address); }} 
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleOpenModal(address); }}
                                         className="p-3 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-all"
                                         aria-label="Editar endereço"
                                     >
                                         <Edit2 size={18} />
                                     </button>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); handleDelete(address.id!); }} 
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(address.id!); }}
                                         className="p-3 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                                         aria-label="Remover endereço"
                                     >
@@ -222,33 +257,40 @@ export default function CheckoutAddress() {
 
                 {/* PAINEL DE PROSSEGUIR: Habilitado dinamicamente para User ou Guest */}
                 {selectedAddressId && (
-                    <footer className="mt-12 bg-white p-8 rounded-[2.5rem] border border-zinc-200 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-bottom-4 duration-500 overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 rounded-full -mr-16 -mt-16 blur-3xl" />
-                        
-                        <div className="flex items-center gap-6 text-left relative z-10">
-                            <div className="w-16 h-16 bg-zinc-900 rounded-3xl flex items-center justify-center text-yellow-500 shadow-lg">
-                                <MapPin size={32} />
+                    <footer className="mt-12 bg-white p-8 rounded-[2.5rem] border border-zinc-200 shadow-2xl flex flex-col gap-6 animate-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-6 text-left">
+                                <div className="w-16 h-16 bg-zinc-900 rounded-3xl flex items-center justify-center text-yellow-500">
+                                    {isCalculating ? <Loader2 className="animate-spin" /> : <MapPin size={32} />}
+                                </div>
+                                <div>
+                                    <h4 className="font-black text-lg italic uppercase leading-none text-zinc-900">
+                                        {isCalculating ? "Calculando Frete..." : "Entrega Loggi Gold"}
+                                    </h4>
+                                    {freightOptions.length > 0 && (
+                                        <p className="text-sm font-black text-yellow-600 uppercase mt-1">
+                                            {freightOptions[0].valor} • Chega em {freightOptions[0].prazo} dias
+                                        </p>
+                                    )}
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">Tudo certo!</p>
-                                <h4 className="font-black text-lg italic uppercase leading-none text-zinc-900">Logística Definida</h4>
-                                <p className="text-[10px] font-bold text-zinc-500 uppercase mt-1 leading-none">Clique ao lado para as opções de pagamento</p>
-                            </div>
-                        </div>
 
-                        <button
-                            onClick={() => {
-                                navigate('/pagamento', {
-                                    state: {
-                                        addressId: selectedAddressId,
-                                        shippingPrice: 0 
-                                    }
-                                });
-                            }}
-                            className="w-full md:w-auto flex items-center justify-center gap-3 bg-zinc-900 text-white px-12 py-6 rounded-3xl font-black uppercase italic hover:bg-yellow-600 hover:text-black transition-all shadow-2xl group active:scale-95 relative z-10"
-                        >
-                            Ir para Pagamento <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
+                            <button
+                                disabled={isCalculating || freightOptions.length === 0}
+                                onClick={() => {
+                                    navigate('/pagamento', {
+                                        state: {
+                                            addressId: selectedAddressId,
+                                            shippingPrice: freightOptions[0].valorNumerico,
+                                            serviceId: freightOptions[0].id
+                                        }
+                                    });
+                                }}
+                                className="w-full md:w-auto flex items-center justify-center gap-3 bg-zinc-900 text-white px-12 py-6 rounded-3xl font-black uppercase italic hover:bg-yellow-600 transition-all disabled:opacity-50"
+                            >
+                                Ir para Pagamento <ChevronRight size={20} />
+                            </button>
+                        </div>
                     </footer>
                 )}
             </section>

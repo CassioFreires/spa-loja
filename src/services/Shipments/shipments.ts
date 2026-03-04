@@ -1,8 +1,26 @@
 import axiosInstance from "../api";
+
+export interface FreightResponse {
+  servico: string;
+  valor: string; // Ex: "R$ 22,81"
+  valorNumerico: number;
+  prazo: number;
+  id: string;
+}
+
 // Helper para pegar o token (evita repetição)
 const getAuthHeader = () => {
   const token = localStorage.getItem('authToken');
   return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+export const calculateFreightAPI = async (zipCode: string, totalValue: number) => {
+  const response = await axiosInstance.post<FreightResponse[]>('/shipments/calculate-freight', {
+    zipCode,
+    totalValue: totalValue.toString(),
+    weightG: 600 // Peso padrão para roupas
+  });
+  return response.data;
 };
 
 /**

@@ -1,59 +1,57 @@
-import { useState } from 'react';
-import { ArrowLeft, ShieldCheck, Lock, ShoppingBag, Loader2, ExternalLink } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, ShieldCheck, Lock, ShoppingBag, Loader2, ExternalLink, Truck, CalendarDays } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useCart } from '../../../../context/CartContext';
 import { createOrder } from '../../../../services/Orders/orders';
 
-/**
- * PAGE: PaymentSelection
- * Objetivo: Finalizar a estrutura do pedido e redirecionar para o Gateway.
- * Suporta: Fluxo Híbrido (Usuário Logado e Visitante).
- */
 export default function PaymentSelection() {
     const navigate = useNavigate();
     const location = useLocation();
     const { totalPrice, cart, clearCart } = useCart();
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // 1. TENTATIVA DE RECUPERAÇÃO HÍBRIDA
+    // Prioriza o State (mais rápido), mas se falhar, busca no LocalStorage (mais seguro)
+    const state = location.state || {};
     
-    // Captura o ID do endereço (pode ser um número ou 'guest_temp_id')
-    const addressId = location.state?.addressId;
+    // Busca no LocalStorage o que foi salvo pelo Modal
+    const cachedFreight = JSON.parse(localStorage.getItem('@app:temp_freight') || 'null');
+    const firstFreightOption = Array.isArray(cachedFreight) ? cachedFreight[0] : cachedFreight;
+
+    // Definição final das variáveis (Lógica Fallback)
+    const shippingPrice = Number(state.shippingPrice || firstFreightOption?.valorNumerico || 0);
+    const deadline = state.deadline || firstFreightOption?.prazo;
+    const serviceId = state.serviceId || firstFreightOption?.id;
+    const addressId = state.addressId;
+
+    const grandTotal = totalPrice + shippingPrice;
 
     const handleFinishOrder = async () => {
-        if (!addressId) {
-            toast.error("Endereço de entrega não selecionado.");
+        if (!addressId && !localStorage.getItem('@app:guest_address')) {
+            toast.error("Selecione o endereço para calcular o frete.");
             return navigate('/endereco');
         }
 
         try {
             setIsSubmitting(true);
+            const isGuest = addressId === 'guest_temp_id' || !localStorage.getItem('authToken');
+            const guestUser = JSON.parse(localStorage.getItem('@app:guest_user') || 'null');
+            const guestAddress = JSON.parse(localStorage.getItem('@app:guest_address') || 'null');
 
-            // Verificamos se é um visitante para ajustar o payload
-            const isGuest = addressId === 'guest_temp_id';
-            
-            // Recuperamos os dados persistidos no LocalStorage (se for visitante)
-            const guestUser = isGuest ? JSON.parse(localStorage.getItem('@app:guest_user') || 'null') : null;
-            const guestAddress = isGuest ? JSON.parse(localStorage.getItem('@app:guest_address') || 'null') : null;
-
-            // Montagem do Payload Profissional
             const orderPayload = {
-                // Se for visitante, enviamos null no ID (o backend criará o registro)
-                ...(isGuest ? {} : { address_id: Number(addressId) }),
-                
-                amount_paid_shipping: 0,
+                ...(!isGuest ? { address_id: Number(addressId) } : {}),
+                amount_paid_shipping: shippingPrice,
+                external_service_id: serviceId,
                 items: cart.map(item => ({
                     product_id: Number(item.id),
                     variation_id: item.variation_id ? Number(item.variation_id) : null,
                     quantity: item.quantity,
                     unit_price: Number(item.price)
                 })),
-                // Injetamos guest_info apenas se for um visitante
                 ...(isGuest && {
-                    guest_info: {
-                        name: guestUser?.name,
-                        email: guestUser?.email
-                    },
-                    guest_address: guestAddress // Dados completos do endereço para o backend salvar
+                    guest_info: { name: guestUser?.name, email: guestUser?.email },
+                    guest_address: guestAddress
                 })
             };
 
@@ -61,116 +59,118 @@ export default function PaymentSelection() {
             const paymentUrl = response?.payment_url || response?.order?.payment_url;
 
             if (paymentUrl) {
-                // Limpeza de cache pós-sucesso
                 clearCart();
+                localStorage.removeItem('@app:temp_freight'); // Limpa após o sucesso
                 if (isGuest) {
                     localStorage.removeItem('@app:guest_user');
                     localStorage.removeItem('@app:guest_address');
                 }
-
-                navigate('/checkout/redirect', {
-                    state: { url: paymentUrl },
-                    replace: true
-                });
-            } else {
-                toast.error("Erro ao gerar link de pagamento.");
-                navigate('/meus-pedidos');
+                navigate('/checkout/redirect', { state: { url: paymentUrl }, replace: true });
             }
         } catch (error: any) {
-            console.error("Erro ao criar pedido:", error.response?.data);
-            const errorMessage = error.response?.data?.message;
-            
-            // Tratamento amigável de erros de validação do NestJS
-            toast.error(Array.isArray(errorMessage) ? errorMessage[0] : "Erro ao processar sua compra.");
+            toast.error("Erro ao processar sua compra.");
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#F8F9FB] p-4 md:p-10 font-sans text-zinc-900 leading-none italic selection:bg-yellow-100">
-            <header className="max-w-6xl mx-auto mb-10 flex items-center justify-between leading-none">
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => navigate('/endereco')} 
-                        className="p-3 bg-white border border-zinc-200 rounded-2xl hover:bg-zinc-50 shadow-sm transition-all"
-                    >
-                        <ArrowLeft size={20} />
+        <div className="min-h-screen bg-[#F8F9FB] p-4 md:p-10 font-sans text-zinc-900 italic selection:bg-yellow-100">
+            {/* ... (Header mantido igual) ... */}
+            <header className="max-w-4xl mx-auto mb-8 flex items-center justify-between">
+                <div className="flex items-center gap-4 text-left">
+                    <button onClick={() => navigate('/endereco')} className="p-3 bg-white border border-zinc-200 rounded-2xl hover:bg-zinc-50 shadow-sm transition-all group">
+                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                     </button>
-                    <div className="text-left">
-                        <h1 className="text-2xl font-black uppercase tracking-tight">Checkout <span className="text-yellow-600">Final</span></h1>
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Ambiente Seguro & Criptografado</p>
+                    <div>
+                        <h1 className="text-2xl font-black uppercase tracking-tight italic">Pagamento <span className="text-yellow-600">&</span> Resumo</h1>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Criptografia ativa</p>
+                        </div>
                     </div>
-                </div>
-                <div className="hidden md:flex items-center gap-2 bg-zinc-900 px-4 py-2 rounded-xl text-white border border-zinc-700">
-                    <Lock size={12} className="text-yellow-500" />
-                    <span className="text-[9px] font-black uppercase tracking-widest leading-none">Proteção SSL Ativa</span>
                 </div>
             </header>
 
-            <main className="max-w-4xl mx-auto">
-                <div className="bg-white p-8 md:p-10 rounded-[3rem] border border-zinc-200 shadow-2xl relative overflow-hidden">
-                    <div className="flex items-center gap-2 mb-8 border-b pb-6">
-                        <ShoppingBag size={18} className="text-yellow-600" />
-                        <h4 className="font-black uppercase text-sm text-zinc-900 tracking-widest">Resumo do Pedido</h4>
-                    </div>
-
-                    <div className="space-y-6 max-h-[300px] overflow-y-auto pr-2 mb-8 custom-scrollbar">
-                        {cart.map((item, idx) => (
-                            <div key={`${item.id}-${idx}`} className="flex items-center justify-between gap-4 group">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-14 bg-zinc-50 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-100">
-                                        <img src={item.image} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" alt={item.name} />
+            <main className="max-w-4xl mx-auto grid md:grid-cols-5 gap-8 leading-none">
+                {/* COLUNA DA ESQUERDA (Carrinho) mantida... */}
+                <div className="md:col-span-3 space-y-6">
+                    <section className="bg-white p-6 rounded-[2.5rem] border border-zinc-200 shadow-xl overflow-hidden text-left">
+                        <div className="flex items-center gap-2 mb-6 opacity-60">
+                            <ShoppingBag size={14} className="text-zinc-900" />
+                            <h4 className="font-black uppercase text-[10px] tracking-[0.2em]">Seu Carrinho</h4>
+                        </div>
+                        <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            {cart.map((item, idx) => (
+                                <div key={`${item.id}-${idx}`} className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-16 bg-zinc-50 rounded-2xl overflow-hidden border border-zinc-100 flex-shrink-0">
+                                            <img src={item.image} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" alt={item.name} />
+                                        </div>
+                                        <div className="text-left">
+                                            <h5 className="font-black uppercase text-[11px] text-zinc-800 tracking-tight leading-tight">{item.name}</h5>
+                                            <p className="text-[9px] font-bold text-zinc-400 uppercase mt-1">Tam: {item.size} • Qtd: {item.quantity}</p>
+                                        </div>
                                     </div>
-                                    <div className="text-left">
-                                        <h5 className="font-black uppercase text-[11px] text-zinc-800 line-clamp-1">{item.name}</h5>
-                                        <p className="text-[9px] font-bold text-zinc-400 uppercase mt-1">QTD: {item.quantity} • {item.size || 'UN'}</p>
-                                    </div>
+                                    <span className="font-black text-[11px] text-zinc-900">R$ {(item.price * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                 </div>
-                                <span className="font-black text-[11px] text-zinc-900">R$ {(item.price * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="space-y-4 border-t pt-8">
-                        <div className="flex justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">
-                            <span>Subtotal Bruto</span>
-                            <span className="text-zinc-900 font-black">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            ))}
                         </div>
-                        <div className="flex justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">
-                            <span>Logística Premium</span>
-                            <span className="text-green-500 font-black uppercase tracking-widest text-[9px] bg-green-50 px-2 py-1 rounded-md">Grátis</span>
-                        </div>
-                        <div className="pt-6 border-t flex flex-col text-left">
-                            <span className="text-[10px] font-black uppercase text-zinc-400 mb-1">Total a Confirmar</span>
-                            <span className="text-5xl font-black text-zinc-950 tracking-tighter leading-none">
-                                R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </span>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={handleFinishOrder}
-                        disabled={isSubmitting || cart.length === 0}
-                        className="w-full mt-10 bg-zinc-950 text-white py-7 rounded-3xl font-black uppercase text-sm hover:bg-yellow-600 hover:text-black transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
-                    >
-                        {isSubmitting ? (
-                            <><Loader2 className="animate-spin" size={20} /> Processando...</>
-                        ) : (
-                            <>Confirmar e Pagar <ExternalLink size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>
-                        )}
-                    </button>
+                    </section>
                 </div>
 
-                <div className="mt-8 bg-zinc-900 p-8 rounded-[2.5rem] flex items-center gap-6 shadow-sm border border-zinc-800">
-                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-yellow-500">
-                        <ShieldCheck size={28} />
-                    </div>
-                    <div className="text-left leading-tight">
-                        <p className="text-[10px] font-black uppercase text-white tracking-widest leading-none">Checkout Blindado</p>
-                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight mt-2 italic">
-                            Seus dados estão seguros. Você será redirecionado para a plataforma de pagamento InfinitePay.
-                        </p>
-                    </div>
+                {/* COLUNA DA DIREITA: VALORES CORRIGIDOS */}
+                <div className="md:col-span-2 space-y-6">
+                    <section className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-100 shadow-2xl text-left flex flex-col h-full">
+                        <div className="flex items-center gap-2 mb-8 opacity-60">
+                            <Truck size={14} className="text-zinc-900" />
+                            <h4 className="font-black uppercase text-[10px] tracking-[0.2em]">Entrega & Taxas</h4>
+                        </div>
+
+                        <div className="space-y-5 flex-grow">
+                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-50 pb-4">
+                                <span>Subtotal</span>
+                                <span className="text-zinc-900 font-black">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            </div>
+
+                            <div className="flex justify-between items-start py-2 border-b border-zinc-50 pb-4">
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block">Frete Loggi Gold</span>
+                                    <div className="flex items-center gap-1.5 text-yellow-600">
+                                        <CalendarDays size={12} />
+                                        <span className="text-[10px] font-black uppercase tracking-tighter">
+                                            {/* EXIBIÇÃO CORRIGIDA DO PRAZO */}
+                                            {deadline ? `${deadline} Dias Úteis` : 'A calcular'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span className="text-[11px] font-black text-zinc-950">
+                                    {shippingPrice === 0 ? 'GRÁTIS' : `R$ ${shippingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                </span>
+                            </div>
+
+                            <div className="pt-6">
+                                <span className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.3em]">Total Final</span>
+                                <div className="flex items-baseline gap-1 mt-2">
+                                    <span className="text-lg font-black text-zinc-950">R$</span>
+                                    <span className="text-5xl font-black text-zinc-950 tracking-tighter">
+                                        {grandTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleFinishOrder}
+                            disabled={isSubmitting || cart.length === 0}
+                            className="w-full mt-10 bg-zinc-950 text-white py-7 rounded-[2rem] font-black uppercase text-xs hover:bg-yellow-600 hover:text-black transition-all shadow-xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                        >
+                            {isSubmitting ? (
+                                <><Loader2 className="animate-spin" size={18} /> Validando...</>
+                            ) : (
+                                <>Confirmar Pedido <ExternalLink size={14} /></>
+                            )}
+                        </button>
+                    </section>
                 </div>
             </main>
         </div>

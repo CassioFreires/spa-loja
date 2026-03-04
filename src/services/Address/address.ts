@@ -20,9 +20,6 @@ export const createAddressAPI = async (token: string, data: Address) => {
         zipcode: data.zip_code, // Mapeando zip_code -> zipcode
         complement: data.complement || ""
     };
-
-    console.log("Enviando Payload para API:", payload);
-
     const response = await axiosInstance.post('/address', payload, {
         headers: { Authorization: `Bearer ${token}` }
     });
