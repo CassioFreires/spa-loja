@@ -1,4 +1,4 @@
-import { X, Package, MapPin, CreditCard, FileText, Truck, ShieldCheck, User, Hash, ExternalLink, XCircle, Loader2 } from 'lucide-react';
+import { X, Package, MapPin, CreditCard, FileText, Truck, ShieldCheck, User, Hash, ExternalLink, XCircle, Loader2, Calendar } from 'lucide-react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { cancelOrder, cancelOrderGuest, getOrderTrackingEvents } from '../../services/Orders/orders';
 import toast from 'react-hot-toast';
@@ -20,7 +20,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, isAdmin = fal
         enabled: !!order?.id
     });
 
-    // --- CAMADA DE COMPATIBILIDADE E NORMALIZAÇÃO ---
+    // --- CAMADA DE COMPATIBILIDADE E NORMALIZAÇÃO (MANTIDA) ---
     const customerName = order?.user_name || order?.display_name || order?.guest_name || "Visitante";
     const customerEmail = order?.user_email || order?.display_email || order?.guest_email || "";
 
@@ -66,7 +66,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, isAdmin = fal
             
             <div className="bg-white w-full max-w-4xl max-h-[95vh] overflow-y-auto rounded-[2rem] md:rounded-[3rem] shadow-2xl relative flex flex-col italic text-zinc-900 border border-zinc-200 no-scrollbar">
 
-                {/* HEADER FIXO */}
+                {/* HEADER FIXO (MANTIDO) */}
                 <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-md p-6 md:p-8 border-b border-zinc-100 flex items-center justify-between">
                     <div>
                         <div className="flex items-center gap-2 text-yellow-600 mb-1">
@@ -89,58 +89,80 @@ export default function OrderDetailModal({ order, isOpen, onClose, isAdmin = fal
 
                 <div className="p-6 md:p-12 space-y-10 md:space-y-12">
 
-                    {/* STATUS DE ENTREGA / TIMELINE */}
-                    <div className="bg-zinc-50 rounded-[2rem] p-6 md:p-8 border border-zinc-100 overflow-hidden">
-                        <h3 className="font-black uppercase text-[10px] md:text-xs tracking-widest mb-8 md:mb-10 flex items-center gap-2">
-                            <Truck size={14} className="text-yellow-600" /> Acompanhamento em tempo real
+                    {/* STATUS DE ENTREGA / TIMELINE HORIZONTAL (MANTIDO) */}
+                    <div className="bg-zinc-50 rounded-[2rem] p-6 md:p-8 border border-zinc-100 overflow-hidden shadow-inner">
+                        <h3 className="font-black uppercase text-[10px] md:text-xs tracking-widest mb-8 md:mb-10 flex items-center gap-2 text-zinc-400">
+                            <Truck size={14} className="text-yellow-600" /> Progresso Geral
                         </h3>
                         
                         <div className="px-2 md:px-6">
                             <TrackingTimeline currentStatus={order?.status} />
                         </div>
-
-                        {events.length > 0 && (
-                            <div className="mt-12 space-y-4 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
-                                {events.map((event: any, idx: number) => (
-                                    <div key={idx} className="flex gap-4 items-start border-l-2 border-zinc-200 ml-2 pl-4 pb-4 last:pb-0">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 mt-1 shrink-0 -ml-[21px] ring-4 ring-zinc-50" />
-                                        <div>
-                                            <p className="text-[10px] font-black uppercase text-zinc-900 leading-none">
-                                                {event.message}
-                                            </p>
-                                            <p className="text-[9px] font-medium text-zinc-400 uppercase mt-1">
-                                                {new Date(event.date).toLocaleString()} • {event.location}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
                     </div>
 
-                    {/* GRID DE INFORMAÇÕES DO CLIENTE E ENDEREÇO */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 border-b border-zinc-50 pb-12">
+                    {/* AJUSTE PEDIDO: HISTÓRICO DE JORNADA PROFISSIONAL */}
+                    <div className="space-y-8">
+                        <h3 className="font-black uppercase text-[10px] md:text-xs tracking-[0.3em] text-zinc-400 flex items-center gap-2">
+                            <Calendar size={14} /> Jornada Detalhada do Pacote
+                        </h3>
+
+                        <div className="relative space-y-8 before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[2px] before:bg-zinc-100 ml-2">
+                            {events.length > 0 ? (
+                                [...events].reverse().map((event: any, idx: number) => (
+                                    <div key={idx} className="relative flex gap-6 pl-12 group animate-in slide-in-from-left-4 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+                                        {/* Indicador Visual da Timeline Vertical */}
+                                        <div className={`
+                                            absolute left-0 w-[36px] h-[36px] rounded-xl flex items-center justify-center z-10 transition-all border-4 border-white
+                                            ${idx === 0 ? 'bg-zinc-900 text-yellow-500 shadow-lg scale-110' : 'bg-white border-zinc-100 text-zinc-300'}
+                                        `}>
+                                            {idx === 0 ? <Loader2 size={16} className="animate-spin" /> : <div className="w-1.5 h-1.5 rounded-full bg-zinc-200" />}
+                                        </div>
+
+                                        <div className="flex flex-col text-left">
+                                            <p className={`text-[11px] font-black uppercase italic tracking-tighter leading-none ${idx === 0 ? 'text-zinc-900' : 'text-zinc-400'}`}>
+                                                {event.message}
+                                            </p>
+                                            <div className="flex items-center gap-3 mt-2">
+                                                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-50 px-2 py-1 rounded-md border border-zinc-100">
+                                                    {new Date(event.date).toLocaleDateString('pt-BR')} • {new Date(event.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                                <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest flex items-center gap-1">
+                                                    <MapPin size={10} /> {event.location}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="pl-12 py-4 text-left">
+                                    <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest italic">Aguardando atualização da transportadora...</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* GRID DE INFORMAÇÕES (LÓGICA MANTIDA) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 border-t border-zinc-50 pt-10">
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 text-zinc-400">
                                 <User size={14} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Identificação</span>
                             </div>
                             <div className="text-left text-sm leading-relaxed">
-                                <p className="font-black text-zinc-800 uppercase leading-tight">{customerName}</p>
-                                <p className="text-zinc-500 font-bold break-all leading-tight">{customerEmail}</p>
+                                <p className="font-black text-zinc-800 uppercase">{customerName}</p>
+                                <p className="text-zinc-500 font-bold break-all">{customerEmail}</p>
                             </div>
                         </div>
 
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 text-zinc-400">
                                 <MapPin size={14} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Entrega</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">Destino</span>
                             </div>
                             <div className="text-left text-sm leading-relaxed">
-                                <p className="text-zinc-500 font-bold leading-tight">{address.street}, {address.number}</p>
-                                <p className="text-zinc-500 font-bold leading-tight">{address.neighborhood}</p>
-                                <p className="text-zinc-500 font-bold leading-tight">{address.city}/{address.state}</p>
-                                <p className="text-zinc-900 font-black text-xs mt-1 leading-none">CEP: {address.zipcode}</p>
+                                <p className="text-zinc-800 font-black uppercase">{address.street}, {address.number}</p>
+                                <p className="text-zinc-500 font-bold uppercase">{address.city}/{address.state}</p>
+                                <p className="text-zinc-900 font-black text-xs mt-1">CEP: {address.zipcode}</p>
                             </div>
                         </div>
 
@@ -169,7 +191,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, isAdmin = fal
                         </div>
                     </div>
 
-                    {/* LISTA DE PRODUTOS */}
+                    {/* LISTA DE PRODUTOS (LÓGICA MANTIDA) */}
                     <div className="space-y-6">
                         <h4 className="font-black uppercase text-[10px] md:text-xs tracking-[0.3em] border-b pb-4 text-zinc-400 flex items-center gap-2">
                             <Package size={14} /> Itens do Pedido
@@ -194,7 +216,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, isAdmin = fal
                         </div>
                     </div>
 
-                    {/* RESUMO FINANCEIRO E AÇÕES */}
+                    {/* RESUMO FINANCEIRO E AÇÕES (LÓGICA MANTIDA) */}
                     <div className="bg-zinc-900 text-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden shadow-xl">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
 
@@ -202,11 +224,11 @@ export default function OrderDetailModal({ order, isOpen, onClose, isAdmin = fal
                             <div className="order-2 md:order-1">
                                 {order.status === 'PENDENTE' ? (
                                     <div className="flex flex-col gap-3">
-                                        <h5 className="font-black uppercase italic text-yellow-500 tracking-widest text-[10px] mb-2">Ações Disponíveis</h5>
+                                        <h5 className="font-black uppercase italic text-yellow-500 tracking-widest text-[10px] mb-2 text-left">Ações Disponíveis</h5>
                                         {order.payment_url && (
                                             <button
                                                 onClick={() => window.open(order.payment_url, '_blank')}
-                                                className="bg-yellow-50 text-black w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95"
+                                                className="bg-yellow-500 text-black w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95"
                                             >
                                                 <ExternalLink size={14} /> Pagar Agora
                                             </button>
@@ -225,7 +247,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, isAdmin = fal
                                         <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
                                             <CreditCard size={16} className="text-yellow-500" />
                                         </div>
-                                        <div>
+                                        <div className="text-left">
                                             <p className="text-[9px] font-medium text-zinc-400 uppercase tracking-widest mb-1">Meio de Captura</p>
                                             <p className="text-sm font-black uppercase tracking-tight">{order.capture_method || 'InfinitePay'}</p>
                                         </div>
@@ -255,7 +277,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, isAdmin = fal
                     </div>
                 </div>
 
-                {/* FOOTER */}
+                {/* FOOTER (LÓGICA MANTIDA) */}
                 <div className="p-6 md:p-8 bg-zinc-50 border-t border-zinc-100 flex flex-col md:flex-row gap-6 items-center justify-between mt-auto">
                     <div className="flex items-center gap-2 text-zinc-400">
                         <FileText size={16} />
