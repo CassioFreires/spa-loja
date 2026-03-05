@@ -119,21 +119,23 @@ export const cancelOrderGuest = async (orderCode: string, email: string) => {
 
 export const getOrderTrackingEvents = async (orderId: number) => {
     try {
-        // Chamada real ao endpoint que busca o shipment + tracking_history
         const response = await axiosInstance.get(`/shipments/order/${orderId}`);
 
-        // O backend retorna { id, status, history: [...] }
-        if (!response.data || !response.data.history) return [];
+        if (!response.data) return null;
 
-        return response.data.history.map((event: any) => ({
-            date: event.created_at,
-            message: event.description,
-            location: event.location,
-            status: event.status // Mantemos o status original para lógica de cores se necessário
-        }));
+        // Retornamos o objeto completo: { status, history, etc }
+        return {
+            status: response.data.status, // EXTREMAMENTE IMPORTANTE PARA A BARRA HORIZONTAL
+            history: response.data.history.map((event: any) => ({
+                date: event.created_at,
+                message: event.description,
+                location: event.location,
+                status: event.status
+            }))
+        };
     } catch (error) {
         console.error("Erro ao buscar histórico real:", error);
-        return [];
+        return null;
     }
 };
 
