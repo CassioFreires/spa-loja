@@ -7,7 +7,7 @@ import { AuthProvider } from './context/AuthContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename='/spa-loja'>
+    <BrowserRouter>
       <AuthProvider>
         <App />
       </AuthProvider>
