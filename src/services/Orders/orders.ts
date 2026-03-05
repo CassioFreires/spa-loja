@@ -91,8 +91,8 @@ export const calculateShippingAPI = async (zipCode: string): Promise<ShippingRes
     // Limpa o CEP para enviar apenas números
     const cleanZip = zipCode.replace(/\D/g, '');
 
-    const response = await axiosInstance.post('/orders/calculate', { 
-        zipCode: cleanZip 
+    const response = await axiosInstance.post('/orders/calculate', {
+        zipCode: cleanZip
     });
 
     return response.data;
@@ -119,19 +119,22 @@ export const cancelOrderGuest = async (orderCode: string, email: string) => {
 
 export const getOrderTrackingEvents = async (orderId: number) => {
     try {
-        // QUANDO O BACKEND ESTIVER PRONTO:
-        // const response = await axiosInstance.get(`/shipments/order/${orderId}/events`);
-        // return response.data;
+        // Chamada real ao endpoint que busca o shipment + tracking_history
+        const response = await axiosInstance.get(`/shipments/order/${orderId}`);
 
-        // DADOS FAKES PARA TESTE DE FRONTEND:
-        return [
-            { date: '2026-02-27T10:00:00Z', message: `Pedido #${orderId} recebido`, location: 'Sistema' },
-            { date: '2026-02-27T10:05:00Z', message: 'Pagamento aprovado via Pix', location: 'InfinitePay' },
-            { date: '2026-02-27T10:10:00Z', message: 'Solicitação de coleta enviada para Loggi', location: 'Centro de Distribuição' },
-            // Simulando o que viria do Async Shipment da Loggi:
-            { date: '2026-02-27T14:30:00Z', message: 'Motorista Loggi a caminho da coleta', location: 'Rio de Janeiro/RJ' },
-        ];
+        // O backend retorna { id, status, history: [...] }
+        if (!response.data || !response.data.history) return [];
+
+        return response.data.history.map((event: any) => ({
+            date: event.created_at,
+            message: event.description,
+            location: event.location,
+            status: event.status // Mantemos o status original para lógica de cores se necessário
+        }));
     } catch (error) {
+        console.error("Erro ao buscar histórico real:", error);
         return [];
     }
 };
+
+
