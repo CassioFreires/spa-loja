@@ -1,7 +1,7 @@
 import { MessageCircle } from 'lucide-react';
 
 export default function WhatsAppButton() {
-  const phoneNumber = "5521999999999"; // 👈 COLOQUE O NÚMERO AQUI
+  const phoneNumber = "5521970272935"; // 👈 COLOQUE O NÚMERO AQUI
   const message = encodeURIComponent("Olá! Vim pelo site da Gold Store e gostaria de um atendimento exclusivo.");
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 
