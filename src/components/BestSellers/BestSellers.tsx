@@ -2,6 +2,7 @@ import { ShoppingCart, Star, Flame, ArrowRight, Loader2, Tag } from 'lucide-reac
 import { useState } from 'react';
 import { useBestSellers } from '../../hooks/useBestSellers';
 import ProductDetailModal from '../modals/productDetailModal';
+import { getImageUrl } from '../../utils/getImageUrl';
 
 /**
  * @component BestSellers
@@ -105,7 +106,7 @@ export default function BestSellers() {
                     )}
 
                     <img
-                      src={product.image_1 || product.image_url}
+                      src={getImageUrl(product.image_1 || product.image_url)}
                       alt={`Camisa ${product.name}`}
                       loading="lazy"
                       decoding="async"

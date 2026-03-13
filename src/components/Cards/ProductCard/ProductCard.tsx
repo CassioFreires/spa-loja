@@ -1,4 +1,5 @@
 import { ShoppingCart, Star, Tag, ShieldCheck, Zap, Trophy, Calendar } from 'lucide-react';
+import { getImageUrl } from '../../../utils/getImageUrl';
 
 interface ProductCardProps {
   product: any;
@@ -57,7 +58,7 @@ export default function ProductCard({ product, index, onOpenModal }: ProductCard
 
         {/* Imagem do Produto */}
         <img 
-          src={product.image_url || product.image_1} 
+          src={getImageUrl(product.image_url || product.image_1)} 
           alt={product.name}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-110 opacity-90 group-hover:opacity-100"
