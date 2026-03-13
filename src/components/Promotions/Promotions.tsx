@@ -10,6 +10,7 @@ import ProductCard from '../Cards/ProductCard/ProductCard';
  */
 export default function Promotions() {
   const { featured, loading } = useFeaturedProducts(4);
+  console.log("Featured Products:", featured); // Debug: Verificar dados recebidos do hook
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
@@ -29,12 +30,12 @@ export default function Promotions() {
   };
 
   return (
-    <section 
+    <section
       className="relative py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 bg-transparent"
       aria-labelledby="promo-heading"
     >
       <div className="max-w-[1440px] mx-auto relative z-10">
-        
+
         {/* Cabeçalho Estruturado para SEO/IA */}
         <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-12 md:mb-20 gap-8 text-center md:text-left leading-none">
           <div className="max-w-2xl">
@@ -44,7 +45,7 @@ export default function Promotions() {
                 Ofertas por Tempo Limitado
               </span>
             </div>
-            <h2 
+            <h2
               id="promo-heading"
               className="text-5xl sm:text-6xl md:text-7xl lg:text-9xl font-black text-zinc-950 uppercase italic tracking-tighter leading-[0.85] drop-shadow-sm"
             >
@@ -54,14 +55,6 @@ export default function Promotions() {
               As melhores camisas tailandesas com preços imbatíveis. Qualidade 1:1 garantida para o seu manto.
             </p>
           </div>
-
-          <button 
-            className="hidden md:flex group items-center gap-4 bg-zinc-950 text-white font-black px-10 py-5 rounded-2xl hover:bg-yellow-500 hover:text-zinc-950 transition-all duration-500 active:scale-95 shadow-2xl shadow-zinc-950/20 italic text-xs tracking-widest"
-            aria-label="Ver todas as promoções"
-          >
-            CATÁLOGO COMPLETO
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-          </button>
         </header>
 
         {loading ? (
@@ -71,14 +64,14 @@ export default function Promotions() {
           </div>
         ) : (
           /* Grid Híbrido utilizando ProductCard centralizado */
-          <div 
+          <div
             className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 overflow-x-auto pb-12 md:pb-0 scrollbar-hide snap-x snap-mandatory scroll-p-4"
             role="list"
           >
             {featured.length > 0 ? (
               featured.map((item) => (
                 <div key={item.featured_id} className="min-w-[85vw] sm:min-w-[45vw] md:min-w-full snap-center">
-                  <ProductCard 
+                  <ProductCard
                     product={{
                       ...item,
                       id: item.product_id,
@@ -114,7 +107,7 @@ export default function Promotions() {
       </div>
 
       {selectedProduct && (
-        <ProductDetailModal 
+        <ProductDetailModal
           product={selectedProduct}
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

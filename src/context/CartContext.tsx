@@ -75,9 +75,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const isExisting = cart.some(item => item.id === product.id && item.variation_id === vId);
 
         if (isExisting) {
-            toast.success(`Quantidade de ${product.name} aumentada!`);
+            toast.success(`Quantidade de ${product.name} aumentada!`, { id: 'cart-quantity-increased' });
         } else {
-            toast.success(`${product.name} adicionado ao carrinho!`);
+            toast.success(`${product.name} adicionado ao carrinho!`, { id: 'cart-item-added' });
         }
 
         setCart(prevCart => {
@@ -127,7 +127,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setCart(prev => prev.filter(item => 
             !(item.id === id && item.variation_id === variationId)
         ));
-        toast.error("Item removido");
+        toast.error("Item removido", { id: 'cart-item-removed' });
     }, []);
 
     const clearCart = useCallback(() => {

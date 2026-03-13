@@ -19,4 +19,5 @@ export const premiumToastOptions = {
   error: {
     iconTheme: { primary: '#ef4444', secondary: '#fff' },
   },
+  id: 'global-toast', // Adiciona um ID global para evitar duplicações
 };

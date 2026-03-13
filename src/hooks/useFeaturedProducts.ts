@@ -16,14 +16,13 @@ export function useFeaturedProducts(limit?: number) {
                 getFeaturedProducts(limit)
             ]);
 
-            const productsList = allProdsRes?.products || [];
             const featuredList = Array.isArray(featuredProds) ? featuredProds : [];
 
-            setAllProducts(productsList);
+            setAllProducts(allProdsRes?.products || []);
             setFeatured(featuredList);
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao carregar dados da vitrine.");
+            setFeatured([]); // Fallback para não quebrar o map
         } finally {
             setLoading(false);
         }
@@ -49,11 +48,11 @@ export function useFeaturedProducts(limit?: number) {
                 discount_percentage: discount,
                 sort_order: featured.length + 1
             });
-            toast.success("Oferta ativada!");
+            toast.success("Oferta ativada!", { id: 'add-featured-success' });
             await loadData();
             return true;
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Erro ao adicionar");
+            toast.error(error.response?.data?.message || "Erro ao adicionar", { id: 'add-featured-error' });
             return false;
         }
     };

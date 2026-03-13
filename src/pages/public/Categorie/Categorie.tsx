@@ -73,7 +73,7 @@ export default function CategoryPage({ isSubcategory = false }) {
     const { data: brandsData } = useQuery({
         queryKey: ['brands-list'],
         queryFn: getBrands,
-        staleTime: 1000 * 60 * 60, // 1 hora de cache
+        staleTime: 3600000, // 1 hora de cache
     });
 
     /**

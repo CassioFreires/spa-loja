@@ -156,11 +156,13 @@ export default function NavBar({ isOpen, onClose, onToggleAdminMenu }: NavBarPro
               </ul>
             </li>
 
-            <li className="border-l border-zinc-200 pl-8 ml-2">
-              <Link to="/meus-pedidos" className="flex items-center gap-2 text-[12px] font-black text-zinc-900 uppercase tracking-widest hover:text-yellow-600 transition-all italic group">
-                <Package className="w-4 h-4 text-yellow-600 transition-transform group-hover:-translate-y-0.5" /> Meus Pedidos
-              </Link>
-            </li>
+            {isAuthenticated && hasAdminAccess && (
+              <li>
+                <Link to="/meus-pedidos" className="flex items-center gap-2 text-[10px] font-black text-white bg-zinc-950 px-5 py-2 rounded-full hover:bg-yellow-600 transition-all uppercase tracking-widest shadow-lg shadow-zinc-200">
+                  Meus Pedidos
+                </Link>
+              </li>
+            )}
 
             {isAuthenticated && hasAdminAccess && (
               <li>

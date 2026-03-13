@@ -10,6 +10,7 @@ import { premiumToastOptions } from "./utils/toastConfig";
 import { CartProvider } from "./context/CartContext";
 import MainLayout from "./components/layout/MainLayout/MainLayout";
 import PrivateRoute from "./components/PrivateRoute/PrivateRoute";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 
 // --- PÁGINAS PÚBLICAS ---
 import Home from "./pages/public/Home/Home";
@@ -22,7 +23,6 @@ import SizeGuidePage from "./pages/public/SizeGuide/SizeGuide";
 import SecurityPolicy from "./pages/public/Security/Security";
 import ReturnsPolicy from "./pages/public/ReturnPolicy/ReturnPolicy";
 import GuestIdentification from "./pages/public/GuestIdentification/GuestIdentification";
-import OrderTracking from "./pages/public/OrderTracking/OrderTracking";
 import AllReviews from "./pages/public/AllReviews/AllReviews";
 
 // --- PÁGINAS DO CLIENTE (PRIVADAS) ---
@@ -43,26 +43,12 @@ import AdminUsers from "./pages/private/admin/Users/Users";
 import WelcomeModal from "./components/modals/Welcome";
 import TeamsPage from "./pages/public/TeamsPage/TeamsPage";
 
-/**
- * COMPONENTE DE DECISÃO HÍBRIDO
- * Lógica: Se logado, PrivateRoute garante o acesso à lista completa. 
- * Se deslogado, cai no rastreio manual por código.
- */
-const MyOrdersDecision = () => {
-  const isAuthenticated = !!localStorage.getItem('authToken');
-  return isAuthenticated ? (
-    <PrivateRoute requiredRole={["ADMIN", "SUPORTE", "CLIENTE"]}>
-      <MyOrders />
-    </PrivateRoute>
-  ) : (
-    <OrderTracking />
-  );
-};
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster position="top-center" toastOptions={premiumToastOptions} />
+      <CookieConsentBanner />
       <CartProvider>
         <WelcomeModal />
         <MainLayout>
@@ -80,7 +66,7 @@ function App() {
             <Route path="/categoria/sub/:subId" element={<CategoryPage isSubcategory={true} />} />
 
             {/* Fluxo de camisas de time */}
-            <Route path="/mantos" element={<TeamsPage/>} />
+            <Route path="/mantos" element={<TeamsPage />} />
 
             {/* Fluxo de Checkout (Híbrido/Público) */}
             <Route path="/identificacao" element={<GuestIdentification />} />
@@ -96,7 +82,14 @@ function App() {
             <Route path="/avaliacoes" element={<AllReviews />} />
 
             {/* Decisão de Pedidos (Logado vs Visitante) */}
-            <Route path="/meus-pedidos" element={<MyOrdersDecision />} />
+            <Route
+              path="/meus-pedidos"
+              element={
+                <PrivateRoute requiredRole={["ADMIN", "SUPORTE"]}>
+                  <MyOrders />
+                </PrivateRoute>
+              }
+            />
 
             {/* ==========================================
                 2. ROTAS PRIVADAS (CLIENTE / COMPRADOR)

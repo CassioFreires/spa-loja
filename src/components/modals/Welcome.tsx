@@ -30,10 +30,15 @@ export default function WelcomeModal({ isOpen: controlledIsOpen, onClose }: Welc
     }
   ];
 
+  const checkWelcomeSeen = () => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    return !hasSeenWelcome;
+  };
+
   useEffect(() => {
     if (controlledIsOpen !== undefined) {
       setIsOpen(controlledIsOpen);
-    } else {
+    } else if (checkWelcomeSeen()) {
       const timer = setTimeout(() => setIsOpen(true), 1000);
       return () => clearTimeout(timer);
     }
@@ -48,21 +53,15 @@ export default function WelcomeModal({ isOpen: controlledIsOpen, onClose }: Welc
   }, [isOpen, isExiting]);
 
   useEffect(() => {
-    if (isOpen && !isExiting) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    document.body.style.overflow = isOpen && !isExiting ? 'hidden' : 'unset';
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen, isExiting]);
 
   const handleClose = () => {
-    setIsExiting(true);
-    setTimeout(() => {
-      setIsOpen(false);
-      setIsExiting(false);
-      onClose?.();
-    }, 600);
+    localStorage.setItem('hasSeenWelcome', 'true');
+    setIsOpen(false);
+    setIsExiting(false);
+    if (onClose) onClose();
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {

@@ -23,7 +23,7 @@ export function useAdminComments(status: 'pending' | 'approved', page: number = 
       setPagination(response.pagination || null);
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao carregar comentários.");
+      toast.error("Erro ao carregar comentários.", { id: 'load-comments-error' });
     } finally {
       setLoading(false);
     }
@@ -36,10 +36,10 @@ export function useAdminComments(status: 'pending' | 'approved', page: number = 
   const handleApprove = async (id: number, approved: boolean) => {
     try {
       await approveOrRejectComment(id, approved);
-      toast.success(approved ? "Comentário aprovado!" : "Movido para pendentes");
+      toast.success(approved ? "Comentário aprovado!" : "Movido para pendentes", { id: 'approve-comment-success' });
       await loadData();
     } catch (error) {
-      toast.error("Erro ao processar moderação.");
+      toast.error("Erro ao processar moderação.", { id: 'moderation-error' });
     }
   };
 

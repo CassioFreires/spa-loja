@@ -99,7 +99,7 @@ export default function AdminDashboard() {
       {/* Navegação de Ações Rápidas - UX intuitiva */}
       <nav className="grid grid-cols-1 md:grid-cols-2 gap-6" aria-label="Ações administrativas">
         <QuickActionLink 
-          to="/admin/products/add"
+          to="/admin/produto/adicionar"
           title="Novo Produto"
           subtitle="Cadastro de inventário base"
           icon={Plus}

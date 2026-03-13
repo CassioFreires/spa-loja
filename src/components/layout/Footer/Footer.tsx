@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { 
   Instagram, Facebook, Twitter, MapPin, 
   Phone, ChevronRight, CreditCard, 
-  ShieldCheck, ArrowUpRight 
+  ShieldCheck, ArrowUpRight, Mail
 } from 'lucide-react';
 
 /**
@@ -56,13 +56,12 @@ export default function Footer() {
             </p>
             <nav className="flex gap-4" aria-label="Redes Sociais">
               {[
-                { icon: <Instagram size={20} />, label: 'Instagram' },
-                { icon: <Facebook size={20} />, label: 'Facebook' },
-                { icon: <Twitter size={20} />, label: 'Twitter' }
+                { icon: <Instagram size={20} />, label: 'Instagram', link: 'https://www.instagram.com/goldstoremultimarcas__/'},
+                { icon: <Mail size={20} />, label: 'E-mail', link: 'mailto:usegoldstoremultimarcas@gmail.com' }
               ].map((social) => (
                 <a 
                   key={social.label}
-                  href="#" 
+                  href={social.link}
                   className="p-3 bg-white/5 rounded-2xl hover:bg-yellow-500 hover:text-black transition-all duration-500 active:scale-90"
                   aria-label={social.label}
                 >
@@ -107,7 +106,10 @@ export default function Footer() {
                 <div className="flex flex-col">
                   <span className="text-xs font-black uppercase tracking-widest text-zinc-200">Localização</span>
                   <span className="text-[11px] text-zinc-500 font-bold uppercase mt-1 leading-relaxed">
-                    Nova Iguaçu - Centro, RJ<br />26210-000
+                    Nova Iguaçu - RJ
+                    <br />26261220
+                    <br />Rua Ministro Lafaiete de Andrade
+                    <br />Bairro Da Luz, 813
                   </span>
                 </div>
               </li>
@@ -117,8 +119,8 @@ export default function Footer() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-black uppercase tracking-widest text-zinc-200">WhatsApp</span>
-                  <a href="tel:21999999999" className="text-[11px] text-zinc-500 font-bold uppercase mt-1 hover:text-white transition-colors">
-                    (21) 99999-9999
+                  <a href="tel:21970272935" className="text-[11px] text-zinc-500 font-bold uppercase mt-1 hover:text-white transition-colors">
+                    (21) 21970-272935
                   </a>
                 </div>
               </li>
