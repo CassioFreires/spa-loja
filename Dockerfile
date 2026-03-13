@@ -1,34 +1,41 @@
-# Estágio 1: Build
-FROM node:20-alpine as build
+# -------- STAGE 1: BUILD --------
+FROM node:20-alpine AS builder
+
 WORKDIR /app
 
-# Recebe a URL da API como argumento de build (importante para o Vite)
+# Copia apenas dependências primeiro (melhora cache)
+COPY package*.json ./
+
+# Instala apenas dependências necessárias
+RUN npm ci
+
+# Copia o restante do projeto
+COPY . .
+
+# Variável usada pelo Vite
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-COPY package*.json ./
-RUN npm install
-COPY . .
+# Build da aplicação
 RUN npm run build
 
-# Estágio 2: Serve (Produção com Nginx)
+
+# -------- STAGE 2: PRODUCTION --------
 FROM nginx:stable-alpine
 
-# 1. Cria o diretório customizado definido no seu nginx.conf
-RUN mkdir -p /var/www/goldstore-frontend
+# Diretório da aplicação
+WORKDIR /var/www/goldstore-frontend
 
-# 2. Limpa qualquer arquivo padrão que possa existir
+# Remove arquivos padrão do nginx
 RUN rm -rf /usr/share/nginx/html/*
-RUN rm -rf /var/www/goldstore-frontend/*
 
-# 3. COPIA o build da pasta 'dist' para o caminho que o Nginx espera
-COPY --from=build /app/dist /var/www/goldstore-frontend
+# Copia build
+COPY --from=builder /app/dist .
 
-# 4. Copia o seu arquivo de configuração do Nginx
-# No Alpine, o caminho padrão de inclusão é /etc/nginx/conf.d/
+# Copia config nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# 5. Ajusta permissões para garantir que o Nginx consiga ler os arquivos
+# Permissões
 RUN chmod -R 755 /var/www/goldstore-frontend
 
 EXPOSE 80
