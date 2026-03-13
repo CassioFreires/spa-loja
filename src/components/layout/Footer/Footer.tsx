@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { 
-  Instagram, Facebook, Twitter, MapPin, 
+  Instagram, MapPin, 
   Phone, ChevronRight, CreditCard, 
   ShieldCheck, ArrowUpRight, Mail
 } from 'lucide-react';
